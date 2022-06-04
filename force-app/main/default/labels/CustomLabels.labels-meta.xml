@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+	<labels>
+		<fullName>SObjectCrudException</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectCrudException</shortDescription>
+		<value>You do not have permission to {0} this {1}.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectFlsException</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectFlsException</shortDescription>
+		<value>You do not have permission to {0} field {1} on {2}.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectDuplicateRuleInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectDuplicateRuleInvalid</shortDescription>
+		<value>The duplicate rule dosen't exist or is inactive.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectDuplicateConfidenceInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectDuplicateConfidenceInvalid</shortDescription>
+		<value>The duplicate confidence is not within range [5 - 10].</value>
+	</labels>
+	<labels>
+		<fullName>SObjectDmlOptionsInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectDmlOptionsInvalid</shortDescription>
+		<value>DML options must not be null.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectFactoryCountInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectFactoryCountInvalid</shortDescription>
+		<value>The factory count must be greater than zero.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectSelectorFieldSetNull</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectSelectorFieldSetNull</shortDescription>
+		<value>The field set cannot be null.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectSelectorFieldSetInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectSelectorFieldSetInvalid</shortDescription>
+		<value>The fieldset "{0}" is not for SObject "{1}".</value>
+	</labels>
+	<labels>
+		<fullName>SObjectSelectorLimitInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectSelectorLimitInvalid</shortDescription>
+		<value>The selector limit is not within range [0 - 50,000].</value>
+	</labels>
+	<labels>
+		<fullName>SObjectUowNewRecordsInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectUowNewRecordsInvalid</shortDescription>
+		<value>Only new records can be registered as new.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectUowTypeInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectUowTypeInvalid</shortDescription>
+		<value>SObject type "{0}" is not supported by this unit of work.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectUowExternalIdForSObjectInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectUowExternalIdForSObjectInvalid</shortDescription>
+		<value>The external id "{0}" is not a known field on the target sObject "{1}".</value>
+	</labels>
+	<labels>
+		<fullName>SObjectUowExternalIdForUpsertInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectUowExternalIdForUpsertInvalid</shortDescription>
+		<value>The external id "{0}" cannot be used for upsert on the target sObject "{1}".</value>
+	</labels>
+	<labels>
+		<fullName>SObjectUowDirtyInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectUowDirtyInvalid</shortDescription>
+		<value>New records cannot be registered as dirty.</value>
+	</labels>
+	<labels>
+		<fullName>SObjectUowDeleteInvalid</fullName>
+		<categories>sobject</categories>
+		<language>en_US</language>
+		<protected>false</protected>
+		<shortDescription>SObjectUowDeleteInvalid</shortDescription>
+		<value>New records cannot be registered for deletion.</value>
+	</labels>
+</CustomLabels>
