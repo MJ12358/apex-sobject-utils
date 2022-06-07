@@ -75,96 +75,96 @@
 
 public inherited sharing class SObjectUnitOfWork {
 
-	private IDml dmlImpl;
-	
-	private List<Schema.SObjectType> sObjectTypes = new List<Schema.SObjectType>();
-	
-	private Map<Schema.SObjectType, List<SObject>> newListByType = new Map<Schema.SObjectType, List<SObject>>();
-	
-	private Map<Schema.SObjectType, Map<Id, SObject>> dirtyMapByType = new Map<Schema.SObjectType, Map<Id, SObject>>();
+  private IDml dmlImpl;
+  
+  private List<Schema.SObjectType> sObjectTypes = new List<Schema.SObjectType>();
+  
+  private Map<Schema.SObjectType, List<SObject>> newListByType = new Map<Schema.SObjectType, List<SObject>>();
+  
+  private Map<Schema.SObjectType, Map<Id, SObject>> dirtyMapByType = new Map<Schema.SObjectType, Map<Id, SObject>>();
 
-	private Map<Schema.SObjectType, List<SObject>> upsertListByType = new Map<Schema.SObjectType, List<SObject>>();
+  private Map<Schema.SObjectType, List<SObject>> upsertListByType = new Map<Schema.SObjectType, List<SObject>>();
 
-	private Map<Schema.SObjectType, Schema.SObjectField> externalIdByType = new Map<Schema.SObjectType, Schema.SObjectField>();
-	
-	private Map<Schema.SObjectType, Map<Id, SObject>> deletedMapByType = new Map<Schema.SObjectType, Map<Id, SObject>>();
-	
-	private Map<Schema.SObjectType, Relationships> relationships = new Map<Schema.SObjectType, Relationships>();
+  private Map<Schema.SObjectType, Schema.SObjectField> externalIdByType = new Map<Schema.SObjectType, Schema.SObjectField>();
+  
+  private Map<Schema.SObjectType, Map<Id, SObject>> deletedMapByType = new Map<Schema.SObjectType, Map<Id, SObject>>();
+  
+  private Map<Schema.SObjectType, Relationships> relationships = new Map<Schema.SObjectType, Relationships>();
 
 /**
  * Constructs a new UnitOfWork to support work against the given object list
  *
  * @param sObjectList A list of objects given in dependency order (least dependent first)
  */
-	public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes) {
-		this(sObjectTypes, new SimpleDml());
-	}
+  public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes) {
+    this(sObjectTypes, new SimpleDml());
+  }
 
-	public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes, Boolean enforceCrud) {
-		this(sObjectTypes, enforceCrud ? (IDml)new SecureDml() : (IDml)new SimpleDml());
-	}
+  public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes, Boolean enforceCrud) {
+    this(sObjectTypes, enforceCrud ? (IDml)new SecureDml() : (IDml)new SimpleDml());
+  }
 
-	public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes, Boolean enforceCrud, Boolean enforceFls) {
-		this(sObjectTypes, enforceCrud ? (IDml)new SecureDml(enforceFls) : (IDml)new SimpleDml());
-	}
+  public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes, Boolean enforceCrud, Boolean enforceFls) {
+    this(sObjectTypes, enforceCrud ? (IDml)new SecureDml(enforceFls) : (IDml)new SimpleDml());
+  }
 
-	public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes, IDml dmlImpl) {
-		this.dmlImpl = dmlImpl;
-		this.sObjectTypes = sObjectTypes.clone();
-		
-		for (Schema.SObjectType sObjectType : this.sObjectTypes) {
-			this.newListByType.put(sObjectType, new List<SObject>());
-			this.dirtyMapByType.put(sObjectType, new Map<Id, SObject>());
-			this.upsertListByType.put(sObjectType, new List<SObject>());
-			this.deletedMapByType.put(sObjectType, new Map<Id, SObject>());
-			this.relationships.put(sObjectType, new Relationships());
-		}
-	}
+  public SObjectUnitOfWork(List<Schema.SObjectType> sObjectTypes, IDml dmlImpl) {
+    this.dmlImpl = dmlImpl;
+    this.sObjectTypes = sObjectTypes.clone();
+    
+    for (Schema.SObjectType sObjectType : this.sObjectTypes) {
+      this.newListByType.put(sObjectType, new List<SObject>());
+      this.dirtyMapByType.put(sObjectType, new Map<Id, SObject>());
+      this.upsertListByType.put(sObjectType, new List<SObject>());
+      this.deletedMapByType.put(sObjectType, new Map<Id, SObject>());
+      this.relationships.put(sObjectType, new Relationships());
+    }
+  }
 
 /**
- *	Add an sObjectType to the unit of work
- *	 this allows for a dynamic list of sObjectTypes
+ *  Add an sObjectType to the unit of work
+ *   this allows for a dynamic list of sObjectTypes
  *
- *	@param Schema.SObjectType The sObjectType to add
+ *  @param Schema.SObjectType The sObjectType to add
  */
-	public void addSObjectType(Schema.SObjectType sObjectType) {
-		if (!this.sObjectTypes.contains(sObjectType)) {
-			this.sObjectTypes.add(sObjectType);
-			this.newListByType.put(sObjectType, new List<SObject>());
-			this.dirtyMapByType.put(sObjectType, new Map<Id, SObject>());
-			this.upsertListByType.put(sObjectType, new List<SObject>());
-			this.deletedMapByType.put(sObjectType, new Map<Id, SObject>());
-			this.relationships.put(sObjectType, new Relationships());
-		}
-	}
+  public void addSObjectType(Schema.SObjectType sObjectType) {
+    if (!this.sObjectTypes.contains(sObjectType)) {
+      this.sObjectTypes.add(sObjectType);
+      this.newListByType.put(sObjectType, new List<SObject>());
+      this.dirtyMapByType.put(sObjectType, new Map<Id, SObject>());
+      this.upsertListByType.put(sObjectType, new List<SObject>());
+      this.deletedMapByType.put(sObjectType, new Map<Id, SObject>());
+      this.relationships.put(sObjectType, new Relationships());
+    }
+  }
 
-	//* Insert
-	
+  //* Insert
+  
 /**
  * Register a newly created SObject instance to be inserted when commitWork is called
  *
  * @param record A newly created SObject instance to be inserted during commitWork
  **/
-	public void registerNew(SObject record) {
-		if (record.Id != null) {
-			throw new SObjectUnitOfWorkException(System.Label.SObjectUowNewRecordsInvalid);
-		}
-		Schema.SObjectType sObjectType = record.getSObjectType();
-		if (!this.newListByType.containsKey(sObjectType)) {
-			throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
-				new List<Object>{
-					sObjectType
-				}
-			));
-		}
-		this.newListByType.get(sObjectType).add(record);
-	}
+  public void registerNew(SObject record) {
+    if (record.Id != null) {
+      throw new SObjectUnitOfWorkException(System.Label.SObjectUowNewRecordsInvalid);
+    }
+    Schema.SObjectType sObjectType = record.getSObjectType();
+    if (!this.newListByType.containsKey(sObjectType)) {
+      throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
+        new List<Object>{
+          sObjectType
+        }
+      ));
+    }
+    this.newListByType.get(sObjectType).add(record);
+  }
 
-	public void registerNew(List<SObject> records) {
-		for (SObject record : records) {
-			registerNew(record);
-		}
-	}
+  public void registerNew(List<SObject> records) {
+    for (SObject record : records) {
+      registerNew(record);
+    }
+  }
 
 /**
  * Register a newly created SObject instance to be inserted when commitWork is called, 
@@ -174,13 +174,13 @@ public inherited sharing class SObjectUnitOfWork {
  * @param relatedToParentField A SObjectField reference to the child field that associates the child record with its parent
  * @param relatedToParentRecord A SObject instance of the parent record (should also be registered as new separatly)
  **/
-	public void registerNew(SObject record, Schema.sObjectField relatedToParentField, SObject relatedToParentRecord) {
-		registerNew(record);
-		if (relatedToParentRecord != null && relatedToParentField != null) {
-			registerRelationship(record, relatedToParentField, relatedToParentRecord);
-		}
-	}
-	
+  public void registerNew(SObject record, Schema.sObjectField relatedToParentField, SObject relatedToParentRecord) {
+    registerNew(record);
+    if (relatedToParentRecord != null && relatedToParentField != null) {
+      registerRelationship(record, relatedToParentField, relatedToParentRecord);
+    }
+  }
+  
 /**
  * Register a relationship between two records that have yet to be inserted to the database. This information will be 
  *  used during the commitWork phase to make the references only when related records have been inserted to the database.
@@ -189,64 +189,64 @@ public inherited sharing class SObjectUnitOfWork {
  * @param relatedToField A SObjectField referene to the lookup field that relates the two records together
  * @param relatedTo A SObject instance (yet to be commited to the database)
  */
-	public void registerRelationship(SObject record, Schema.sObjectField relatedToField, SObject relatedTo) {
-		Schema.SObjectType sObjectType = record.getSObjectType();
-		if (!this.newListByType.containsKey(sObjectType)) {
-			throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
-				new List<Object>{
-					sObjectType
-				}
-			));
-		}
-		this.relationships.get(sObjectType).add(record, relatedToField, relatedTo);
-	}
+  public void registerRelationship(SObject record, Schema.sObjectField relatedToField, SObject relatedTo) {
+    Schema.SObjectType sObjectType = record.getSObjectType();
+    if (!this.newListByType.containsKey(sObjectType)) {
+      throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
+        new List<Object>{
+          sObjectType
+        }
+      ));
+    }
+    this.relationships.get(sObjectType).add(record, relatedToField, relatedTo);
+  }
 
-	//* Update
-	
+  //* Update
+  
 /**
  * Register an existing record to be updated during the commitWork method
  *
  * @param record An existing record
  **/
-	// TODO: Overload this method with the option to pass in a list of dirtyFields (List<Schema.SObjectField>)
-	public void registerDirty(SObject record) {
-		if (record.Id == null) {
-			throw new SObjectUnitOfWorkException(System.Label.SObjectUowDirtyInvalid);
-		}
-		Schema.SObjectType sObjectType = record.getSObjectType();
-		if (!this.dirtyMapByType.containsKey(sObjectType)) {
-			throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
-				new List<Object>{
-					sObjectType
-				}
-			));
-		}
-		// if the record isn't already registered as dirty
-		if (!this.dirtyMapByType.get(sObjectType).containsKey(record.Id)) {
-			this.dirtyMapByType.get(sObjectType).put(record.Id, record);
-		} else {
-			// update the registered records fields
-			SObject registeredRecord = this.dirtyMapByType.get(sObjectType).get(record.Id);
-			Map<String, Object> populatedFields = record.getPopulatedFieldsAsMap();
-			Map<String, Schema.SObjectField> fieldMap = sObjectType.getDescribe().fields.getMap();
-			// BUG: when selector is used this will just overwrite the registeredRecords values
-			for (String field : populatedFields.keySet()) {
-				if (fieldMap.get(field) != null && fieldMap.get(field).getDescribe().isUpdateable()) {
-					Object value = populatedFields.get(field);
-					registeredRecord.put(field, value);
-				}
-			}
-			this.dirtyMapByType.get(sObjectType).put(record.Id, registeredRecord);
-		}
-	}
+  // TODO: Overload this method with the option to pass in a list of dirtyFields (List<Schema.SObjectField>)
+  public void registerDirty(SObject record) {
+    if (record.Id == null) {
+      throw new SObjectUnitOfWorkException(System.Label.SObjectUowDirtyInvalid);
+    }
+    Schema.SObjectType sObjectType = record.getSObjectType();
+    if (!this.dirtyMapByType.containsKey(sObjectType)) {
+      throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
+        new List<Object>{
+          sObjectType
+        }
+      ));
+    }
+    // if the record isn't already registered as dirty
+    if (!this.dirtyMapByType.get(sObjectType).containsKey(record.Id)) {
+      this.dirtyMapByType.get(sObjectType).put(record.Id, record);
+    } else {
+      // update the registered records fields
+      SObject registeredRecord = this.dirtyMapByType.get(sObjectType).get(record.Id);
+      Map<String, Object> populatedFields = record.getPopulatedFieldsAsMap();
+      Map<String, Schema.SObjectField> fieldMap = sObjectType.getDescribe().fields.getMap();
+      // BUG: when selector is used this will just overwrite the registeredRecords values
+      for (String field : populatedFields.keySet()) {
+        if (fieldMap.get(field) != null && fieldMap.get(field).getDescribe().isUpdateable()) {
+          Object value = populatedFields.get(field);
+          registeredRecord.put(field, value);
+        }
+      }
+      this.dirtyMapByType.get(sObjectType).put(record.Id, registeredRecord);
+    }
+  }
 
-	public void registerDirty(List<SObject> records) {
-		for (SObject record : records) {
-			registerDirty(record);
-		}
-	}
+  public void registerDirty(List<SObject> records) {
+    for (SObject record : records) {
+      registerDirty(record);
+    }
+  }
 
-	//* Upsert
+  //* Upsert
 
 /**
  * Register a new or existing record to be inserted/updated during the commitWork method
@@ -254,223 +254,223 @@ public inherited sharing class SObjectUnitOfWork {
  * @param record A new or existing record
  * @param externalId The external id field
  **/
-	public void registerUpsert(SObject record, Schema.SObjectField externalId) {
-		Schema.SObjectType sObjectType = record.getSObjectType();
-		if (!this.upsertListByType.containsKey(sObjectType)) {
-			throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
-				new List<Object>{
-					sObjectType
-				}
-			));
-		}
-		if (externalId != null) {
-			if (!sObjectType.getDescribe().fields.getMap().values().contains(externalId)) {
-				throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowExternalIdForSObjectInvalid,
-					new List<Object>{
-						externalId,
-						sObjectType
-					}
-				));
-			}
-			if (!externalId.getDescribe().isIdLookup()) {
-				throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowExternalIdForUpsertInvalid,
-					new List<Object>{
-						externalId,
-						sObjectType
-					}
-				));
-			}
-		}
-		this.upsertListByType.get(sObjectType).add(record);
-		this.externalIdByType.put(sObjectType, externalId);
-	}
+  public void registerUpsert(SObject record, Schema.SObjectField externalId) {
+    Schema.SObjectType sObjectType = record.getSObjectType();
+    if (!this.upsertListByType.containsKey(sObjectType)) {
+      throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
+        new List<Object>{
+          sObjectType
+        }
+      ));
+    }
+    if (externalId != null) {
+      if (!sObjectType.getDescribe().fields.getMap().values().contains(externalId)) {
+        throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowExternalIdForSObjectInvalid,
+          new List<Object>{
+            externalId,
+            sObjectType
+          }
+        ));
+      }
+      if (!externalId.getDescribe().isIdLookup()) {
+        throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowExternalIdForUpsertInvalid,
+          new List<Object>{
+            externalId,
+            sObjectType
+          }
+        ));
+      }
+    }
+    this.upsertListByType.get(sObjectType).add(record);
+    this.externalIdByType.put(sObjectType, externalId);
+  }
 
-	public void registerUpsert(List<SObject> records, Schema.SObjectField externalId) {
-		for (SObject record : records) {
-			registerUpsert(record, externalId);
-		}
-	}
+  public void registerUpsert(List<SObject> records, Schema.SObjectField externalId) {
+    for (SObject record : records) {
+      registerUpsert(record, externalId);
+    }
+  }
 
-	public void registerUpsert(SObject record) {
-		registerUpsert(record, null);
-	}
+  public void registerUpsert(SObject record) {
+    registerUpsert(record, null);
+  }
 
-	public void registerUpsert(List<SObject> records) {
-		registerUpsert(records, null);
-	}
+  public void registerUpsert(List<SObject> records) {
+    registerUpsert(records, null);
+  }
 
-	//* Delete
-	
+  //* Delete
+  
 /**
  * Register an existing record to be deleted during the commitWork method
  *
  * @param record An existing record
  **/
-	public void registerDeleted(SObject record) {
-		if (record.Id == null) {
-			throw new SObjectUnitOfWorkException(System.Label.SObjectUowDeleteInvalid);
-		}
-		Schema.SObjectType sObjectType = record.getSObjectType();
-		if (!this.deletedMapByType.containsKey(sObjectType)) {
-			throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
-				new List<Object>{
-					sObjectType
-				}
-			));
-		}
-		this.deletedMapByType.get(sObjectType).put(record.Id, record);					
-	}
+  public void registerDeleted(SObject record) {
+    if (record.Id == null) {
+      throw new SObjectUnitOfWorkException(System.Label.SObjectUowDeleteInvalid);
+    }
+    Schema.SObjectType sObjectType = record.getSObjectType();
+    if (!this.deletedMapByType.containsKey(sObjectType)) {
+      throw new SObjectUnitOfWorkException(String.format(System.Label.SObjectUowTypeInvalid,
+        new List<Object>{
+          sObjectType
+        }
+      ));
+    }
+    this.deletedMapByType.get(sObjectType).put(record.Id, record);          
+  }
 
-	public void registerDeleted(List<SObject> records) {
-		for (SObject record : records) {
-			registerDeleted(record);
-		}
-	}
-	
+  public void registerDeleted(List<SObject> records) {
+    for (SObject record : records) {
+      registerDeleted(record);
+    }
+  }
+  
 /**
  * Takes all the work that has been registered with the UnitOfWork and commits it to the database
  **/
-	public void commitWork() {
-		// Wrap the work in its own transaction 
-		Savepoint sp = Database.setSavePoint();
-		try {	
-			// Insert by type
-			for (Schema.SObjectType sObjectType : this.sObjectTypes) {
-				Relationships relationships = this.relationships.get(sObjectType);
-				relationships.resolve();
-				this.dmlImpl.onInsert(this.newListByType.get(sObjectType));
-				if (relationships.hasReflective()) {
-					this.dmlImpl.onUpdate(relationships.getResolvedReflectiveRecords());
-				}
-			}
-			// Update by type
-			for (Schema.SObjectType sObjectType : this.sObjectTypes) {
-				this.dmlImpl.onUpdate(this.dirtyMapByType.get(sObjectType).values());
-			}
-			// Upsert by type
-			for (Schema.SObjectType sObjectType : this.sObjectTypes) {
-				if (!this.upsertListByType.get(sObjectType).isEmpty()) {
-					String listType = 'List<' + sObjectType.getDescribe().getName() + '>';
-					List<SObject> castRecords = (List<SObject>)Type.forName(listType).newInstance();
-					castRecords.addAll(this.upsertListByType.get(sObjectType));
-					this.dmlImpl.onUpsert(castRecords, this.externalIdByType.get(sObjectType));
-				}
-			}
-			// Delete by type (in reverse dependency order)
-			Integer objectIdx = this.sObjectTypes.size() - 1;
-			while (objectIdx >= 0) {
-				this.dmlImpl.onDelete(this.deletedMapByType.get(this.sObjectTypes[objectIdx--]).values());
-			}
-		} catch (Exception e) {
-			// Rollback
-			Database.rollback(sp);
-			// Throw exception on to caller
-			throw e;
-		}
-	}
+  public void commitWork() {
+    // Wrap the work in its own transaction 
+    Savepoint sp = Database.setSavePoint();
+    try { 
+      // Insert by type
+      for (Schema.SObjectType sObjectType : this.sObjectTypes) {
+        Relationships relationships = this.relationships.get(sObjectType);
+        relationships.resolve();
+        this.dmlImpl.onInsert(this.newListByType.get(sObjectType));
+        if (relationships.hasReflective()) {
+          this.dmlImpl.onUpdate(relationships.getResolvedReflectiveRecords());
+        }
+      }
+      // Update by type
+      for (Schema.SObjectType sObjectType : this.sObjectTypes) {
+        this.dmlImpl.onUpdate(this.dirtyMapByType.get(sObjectType).values());
+      }
+      // Upsert by type
+      for (Schema.SObjectType sObjectType : this.sObjectTypes) {
+        if (!this.upsertListByType.get(sObjectType).isEmpty()) {
+          String listType = 'List<' + sObjectType.getDescribe().getName() + '>';
+          List<SObject> castRecords = (List<SObject>)Type.forName(listType).newInstance();
+          castRecords.addAll(this.upsertListByType.get(sObjectType));
+          this.dmlImpl.onUpsert(castRecords, this.externalIdByType.get(sObjectType));
+        }
+      }
+      // Delete by type (in reverse dependency order)
+      Integer objectIdx = this.sObjectTypes.size() - 1;
+      while (objectIdx >= 0) {
+        this.dmlImpl.onDelete(this.deletedMapByType.get(this.sObjectTypes[objectIdx--]).values());
+      }
+    } catch (Exception e) {
+      // Rollback
+      Database.rollback(sp);
+      // Throw exception on to caller
+      throw e;
+    }
+  }
 
-	public List<SObject> getNewRecords() {
-		List<SObject> result = new List<SObject>();
-		for (Schema.SObjectType sObjType : this.newListByType.keySet()) {
-			result.addAll(this.newListByType.get(sObjType));
-		}
-		return result;
-	}
+  public List<SObject> getNewRecords() {
+    List<SObject> result = new List<SObject>();
+    for (Schema.SObjectType sObjType : this.newListByType.keySet()) {
+      result.addAll(this.newListByType.get(sObjType));
+    }
+    return result;
+  }
 
-	public Map<Id, SObject> getDirtyRecords() {
-		Map<Id, SObject> result = new Map<Id, SObject>();
-		for (Schema.SObjectType sObjType : this.dirtyMapByType.keySet()) {
-			for (SObject sObj : this.dirtyMapByType.get(sObjType).values()) {
-				result.put(sObj.Id, sObj);
-			}
-		}
-		return result;
-	}
+  public Map<Id, SObject> getDirtyRecords() {
+    Map<Id, SObject> result = new Map<Id, SObject>();
+    for (Schema.SObjectType sObjType : this.dirtyMapByType.keySet()) {
+      for (SObject sObj : this.dirtyMapByType.get(sObjType).values()) {
+        result.put(sObj.Id, sObj);
+      }
+    }
+    return result;
+  }
 
-	public Map<Id, SObject> getUpsertedRecords() {
-		Map<Id, SObject> result = new Map<Id, SObject>();
-		for (Schema.SObjectType sObjType : this.upsertListByType.keySet()) {
-			for (SObject sObj : this.upsertListByType.get(sObjType)) {
-				result.put(sObj.Id, sObj);
-			}
-		}
-		return result;
-	}
+  public Map<Id, SObject> getUpsertedRecords() {
+    Map<Id, SObject> result = new Map<Id, SObject>();
+    for (Schema.SObjectType sObjType : this.upsertListByType.keySet()) {
+      for (SObject sObj : this.upsertListByType.get(sObjType)) {
+        result.put(sObj.Id, sObj);
+      }
+    }
+    return result;
+  }
 
-	public Map<Id, SObject> getDeletedRecords() {
-		Map<Id, SObject> result = new Map<Id, SObject>();
-		for (Schema.SObjectType sObjType : this.deletedMapByType.keySet()) {
-			for (SObject sObj : this.deletedMapByType.get(sObjType).values()) {
-				result.put(sObj.Id, sObj);
-			}
-		}
-		return result;
-	}
+  public Map<Id, SObject> getDeletedRecords() {
+    Map<Id, SObject> result = new Map<Id, SObject>();
+    for (Schema.SObjectType sObjType : this.deletedMapByType.keySet()) {
+      for (SObject sObj : this.deletedMapByType.get(sObjType).values()) {
+        result.put(sObj.Id, sObj);
+      }
+    }
+    return result;
+  }
 
-	public List<SObject> getRecords() {
-		List<SObject> results = new List<SObject>();
-		results.addAll(getNewRecords());
-		results.addAll(getDirtyRecords().values());
-		results.addAll(getUpsertedRecords().values());
-		results.addAll(getDeletedRecords().values());
-		return results;
-	}
+  public List<SObject> getRecords() {
+    List<SObject> results = new List<SObject>();
+    results.addAll(getNewRecords());
+    results.addAll(getDirtyRecords().values());
+    results.addAll(getUpsertedRecords().values());
+    results.addAll(getDeletedRecords().values());
+    return results;
+  }
 
-	//* Relationship classes
-	
-	private class Relationships {
+  //* Relationship classes
+  
+  private class Relationships {
 
-		private List<Relationship> relationships = new List<Relationship>();
-		private List<Relationship> reflectiveRelationships = new List<Relationship>();
+    private List<Relationship> relationships = new List<Relationship>();
+    private List<Relationship> reflectiveRelationships = new List<Relationship>();
 
-		public void resolve() {
-			// Resolve relationships
-			for (Relationship relationship : this.relationships) {
-				relationship.record.put(relationship.relatedToField, relationship.RelatedTo.Id);
-			}
-		}
+    public void resolve() {
+      // Resolve relationships
+      for (Relationship relationship : this.relationships) {
+        relationship.record.put(relationship.relatedToField, relationship.RelatedTo.Id);
+      }
+    }
 
-		public void resolveReflective() {
-			// Resolve reflective relationships
-			for (Relationship relationship : this.reflectiveRelationships) {
-				relationship.record.put(relationship.relatedToField, relationship.RelatedTo.Id);
-			}
-		}
+    public void resolveReflective() {
+      // Resolve reflective relationships
+      for (Relationship relationship : this.reflectiveRelationships) {
+        relationship.record.put(relationship.relatedToField, relationship.RelatedTo.Id);
+      }
+    }
 
-		public Boolean hasReflective() {
-			return this.reflectiveRelationships.size() > 0;
-		}
+    public Boolean hasReflective() {
+      return this.reflectiveRelationships.size() > 0;
+    }
 
-		public List<SObject> getResolvedReflectiveRecords() {
-			resolveReflective();
-			List<SObject> records = new List<SObject>();
-			for (Relationship relationship : this.reflectiveRelationships) {
-				records.add(relationship.record);
-			}
-			return records;
-		}
-		
-		public void add(SObject record, Schema.SObjectField relatedToField, SObject relatedTo) {
-			// Relationship to resolve
-			Relationship relationship = new Relationship();
-			relationship.record = record;
-			relationship.relatedToField = relatedToField;
-			relationship.relatedTo = relatedTo;
-			if (record.getSObjectType() == relatedTo.getSObjectType() && relatedTo.Id == null) {
-				this.reflectiveRelationships.add(relationship);
-			} else {
-				this.relationships.add(relationship);
-			}
-		}
+    public List<SObject> getResolvedReflectiveRecords() {
+      resolveReflective();
+      List<SObject> records = new List<SObject>();
+      for (Relationship relationship : this.reflectiveRelationships) {
+        records.add(relationship.record);
+      }
+      return records;
+    }
+    
+    public void add(SObject record, Schema.SObjectField relatedToField, SObject relatedTo) {
+      // Relationship to resolve
+      Relationship relationship = new Relationship();
+      relationship.record = record;
+      relationship.relatedToField = relatedToField;
+      relationship.relatedTo = relatedTo;
+      if (record.getSObjectType() == relatedTo.getSObjectType() && relatedTo.Id == null) {
+        this.reflectiveRelationships.add(relationship);
+      } else {
+        this.relationships.add(relationship);
+      }
+    }
 
-	}
-	
-	private class Relationship {
+  }
+  
+  private class Relationship {
 
-		public SObject record;
-		public Schema.SObjectField relatedToField;
-		public SObject relatedTo;
+    public SObject record;
+    public Schema.SObjectField relatedToField;
+    public SObject relatedTo;
 
-	}
+  }
 
 }

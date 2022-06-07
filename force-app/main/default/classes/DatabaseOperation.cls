@@ -27,16 +27,16 @@
 
 public enum DatabaseOperation {
 
-	READ,
+  READ,
 
-	INSERTX, // insert is a reserved word in apex
+  INSERTX, // insert is a reserved word in apex
 
-	UPDATEX, // update is a reserved word in apex
+  UPDATEX, // update is a reserved word in apex
 
-	UPSERTX, // upsert is a reserved word in apex
+  UPSERTX, // upsert is a reserved word in apex
 
-	DELETEX, // delete is a reserved word in apex
+  DELETEX, // delete is a reserved word in apex
 
-	UNKNOWN
+  UNKNOWN
 
 }

@@ -154,7 +154,7 @@ private class LREngineTest {
          // o.Account.rollups__NumberofLocations__c, o.AccountId From Opportunity o
          ctx.add(
                 new LREngine.RollupSummaryField(
-                                              	Account.AnnualRevenue,
+                                                Account.AnnualRevenue,
                                                 Opportunity.Amount,
                                                 LREngine.RollupOperation.Sum
                                              )); 

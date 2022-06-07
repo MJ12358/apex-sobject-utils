@@ -29,119 +29,119 @@
 
 public inherited sharing class DuplicateFinder {
 
-	private String ruleName;
-	private Integer confidence;
-	private List<MatchRecordWrapper> records;
+  private String ruleName;
+  private Integer confidence;
+  private List<MatchRecordWrapper> records;
 
-	public DuplicateFinder() {
-		this.confidence = 5;
-		this.records = new List<MatchRecordWrapper>();
-	}
+  public DuplicateFinder() {
+    this.confidence = 5;
+    this.records = new List<MatchRecordWrapper>();
+  }
 
-	public DuplicateFinder(String ruleName) {
-		this();
-		this.ruleName = ruleName;
-		if ([SELECT Count() FROM DuplicateRule WHERE DeveloperName = :ruleName AND IsActive = true] <= 0) {
-			throw new DuplicateFinderException(System.Label.SObjectDuplicateRuleInvalid);
-		}
-	}
-
-/**
- *	Set the confidence level
- *	@param Integer
- */
-	public DuplicateFinder setConfidence(Integer value) {
-		if (value == null || value < 5 || value > 10) {
-			throw new DuplicateFinderException(System.Label.SObjectDuplicateConfidenceInvalid);
-		}
-		this.confidence = value;
-		return this;
-	}
+  public DuplicateFinder(String ruleName) {
+    this();
+    this.ruleName = ruleName;
+    if ([SELECT Count() FROM DuplicateRule WHERE DeveloperName = :ruleName AND IsActive = true] <= 0) {
+      throw new DuplicateFinderException(System.Label.SObjectDuplicateRuleInvalid);
+    }
+  }
 
 /**
- *	Find duplicates
- *	@param SObject
+ *  Set the confidence level
+ *  @param Integer
  */
-	public DuplicateFinder find(SObject sObj) {
-		return find(new List<SObject>{ sObj });
-	}
+  public DuplicateFinder setConfidence(Integer value) {
+    if (value == null || value < 5 || value > 10) {
+      throw new DuplicateFinderException(System.Label.SObjectDuplicateConfidenceInvalid);
+    }
+    this.confidence = value;
+    return this;
+  }
 
 /**
- *	Find duplicates
- *	@param List<SObject>
+ *  Find duplicates
+ *  @param SObject
  */
-	public DuplicateFinder find(List<SObject> sObjects) {
-		List<Datacloud.FindDuplicatesResult> findDuplicateResults;
-
-		try {
-			findDuplicateResults = Datacloud.FindDuplicates.findDuplicates(sObjects);
-		} catch (System.HandledException e) {
-			throw new DuplicateFinderException(e.getMessage());
-		}
-
-		return find(findDuplicateResults);
-	}
+  public DuplicateFinder find(SObject sObj) {
+    return find(new List<SObject>{ sObj });
+  }
 
 /**
- *	Find duplicates by id
- *	@param Id
+ *  Find duplicates
+ *  @param List<SObject>
  */
-	public DuplicateFinder find(Id recordId) {
-		return find(new List<Id>{ recordId });
-	}
+  public DuplicateFinder find(List<SObject> sObjects) {
+    List<Datacloud.FindDuplicatesResult> findDuplicateResults;
+
+    try {
+      findDuplicateResults = Datacloud.FindDuplicates.findDuplicates(sObjects);
+    } catch (System.HandledException e) {
+      throw new DuplicateFinderException(e.getMessage());
+    }
+
+    return find(findDuplicateResults);
+  }
 
 /**
- *	Find duplicates by id
- *	@param List<Id>
+ *  Find duplicates by id
+ *  @param Id
  */
-	public DuplicateFinder find(List<Id> recordIds) {
-		List<Datacloud.FindDuplicatesResult> findDuplicateResults;
+  public DuplicateFinder find(Id recordId) {
+    return find(new List<Id>{ recordId });
+  }
 
-		try {
-			findDuplicateResults = Datacloud.FindDuplicatesByIds.findDuplicatesByIds(recordIds);
-		} catch (System.HandledException e) {
-			throw new DuplicateFinderException(e.getMessage());
-		}
+/**
+ *  Find duplicates by id
+ *  @param List<Id>
+ */
+  public DuplicateFinder find(List<Id> recordIds) {
+    List<Datacloud.FindDuplicatesResult> findDuplicateResults;
 
-		return find(findDuplicateResults);
-	}
+    try {
+      findDuplicateResults = Datacloud.FindDuplicatesByIds.findDuplicatesByIds(recordIds);
+    } catch (System.HandledException e) {
+      throw new DuplicateFinderException(e.getMessage());
+    }
+
+    return find(findDuplicateResults);
+  }
 
 /**
  *  Find
- * 	@param Datacloud.FindDuplicatesResult
+ *  @param Datacloud.FindDuplicatesResult
  */
-	private DuplicateFinder find(List<Datacloud.FindDuplicatesResult> findDuplicateResults) {
-		for (Datacloud.FindDuplicatesResult findDupResult : findDuplicateResults) {
-			
-			List<Datacloud.DuplicateResult> duplicateResults = findDupResult.getDuplicateResults();
-			for (Datacloud.DuplicateResult dupResult : duplicateResults) {
-				
-				String rule = dupResult.getDuplicateRule();
-				List<Datacloud.MatchResult> matchResults = dupResult.getMatchResults();
-				for (Datacloud.MatchResult matchResult : matchResults) {
-					
-					for (Datacloud.MatchRecord record : matchResult.getMatchRecords()) {
-						this.records.add(new MatchRecordWrapper(record));
-					}
-				}
-			}
-		}
-		return this;
-	}
+  private DuplicateFinder find(List<Datacloud.FindDuplicatesResult> findDuplicateResults) {
+    for (Datacloud.FindDuplicatesResult findDupResult : findDuplicateResults) {
+      
+      List<Datacloud.DuplicateResult> duplicateResults = findDupResult.getDuplicateResults();
+      for (Datacloud.DuplicateResult dupResult : duplicateResults) {
+        
+        String rule = dupResult.getDuplicateRule();
+        List<Datacloud.MatchResult> matchResults = dupResult.getMatchResults();
+        for (Datacloud.MatchResult matchResult : matchResults) {
+          
+          for (Datacloud.MatchRecord record : matchResult.getMatchRecords()) {
+            this.records.add(new MatchRecordWrapper(record));
+          }
+        }
+      }
+    }
+    return this;
+  }
 
 /**
- *	Get record
- *	@return SObject The best match or null if none
+ *  Get record
+ *  @return SObject The best match or null if none
  */
-	public SObject getRecord() {
-		this.records.sort();
-		for (MatchRecordWrapper wrap : this.records) {
-			if (wrap.record.getMatchConfidence() > this.confidence) {
-				return wrap.record.getRecord();
-			}
-		}
-		return null;
-	}
+  public SObject getRecord() {
+    this.records.sort();
+    for (MatchRecordWrapper wrap : this.records) {
+      if (wrap.record.getMatchConfidence() > this.confidence) {
+        return wrap.record.getRecord();
+      }
+    }
+    return null;
+  }
 
 /**
  *  Get records
@@ -157,46 +157,46 @@ public inherited sharing class DuplicateFinder {
   }
 
 /**
- *	Get record populated with field data
- *		by default the record returned only contains "Compact Layout" fields
- *	@return SObject
+ *  Get record populated with field data
+ *    by default the record returned only contains "Compact Layout" fields
+ *  @return SObject
  */
-	public SObject getRecordPopulated() {
-		SObject result = getRecord();
-		if (result == null) {
-			return result;
-		}
-		Id recordId = result.Id;
-		String query = String.format('SELECT {0} FROM {1} WHERE Id = :recordId',
-			new List<Object>{
-				String.join(new List<String>(result.getSObjectType().getDescribe().fields.getMap().keySet()), ','),
-				result.getSObjectType().getDescribe().getName()
-			}
-		);
-		return Database.query(query)[0];
-	}
+  public SObject getRecordPopulated() {
+    SObject result = getRecord();
+    if (result == null) {
+      return result;
+    }
+    Id recordId = result.Id;
+    String query = String.format('SELECT {0} FROM {1} WHERE Id = :recordId',
+      new List<Object>{
+        String.join(new List<String>(result.getSObjectType().getDescribe().fields.getMap().keySet()), ','),
+        result.getSObjectType().getDescribe().getName()
+      }
+    );
+    return Database.query(query)[0];
+  }
 
 /**
- * 	Datacloud.MatchRecord wrapper class
- * 		implements Comparable to allow sorting by confidence
+ *  Datacloud.MatchRecord wrapper class
+ *    implements Comparable to allow sorting by confidence
  */
-	private class MatchRecordWrapper implements Comparable {
-		public Datacloud.MatchRecord record;
+  private class MatchRecordWrapper implements Comparable {
+    public Datacloud.MatchRecord record;
 
-		public MatchRecordWrapper(Datacloud.MatchRecord record) {
-			this.record = record;
-		}
+    public MatchRecordWrapper(Datacloud.MatchRecord record) {
+      this.record = record;
+    }
 
-		public Integer compareTo(Object compareTo) {
-			MatchRecordWrapper compare = (MatchRecordWrapper)compareTo;
-			if (record.getMatchConfidence() > compare.record.getMatchConfidence()) {
-				return 1;
-			}
-			if (record.getMatchConfidence() < compare.record.getMatchConfidence()) {
-				return -1;
-			}
-			return 0;
-		}
-	}
+    public Integer compareTo(Object compareTo) {
+      MatchRecordWrapper compare = (MatchRecordWrapper)compareTo;
+      if (record.getMatchConfidence() > compare.record.getMatchConfidence()) {
+        return 1;
+      }
+      if (record.getMatchConfidence() < compare.record.getMatchConfidence()) {
+        return -1;
+      }
+      return 0;
+    }
+  }
 
 }

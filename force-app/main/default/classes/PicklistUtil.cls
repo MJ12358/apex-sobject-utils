@@ -38,9 +38,9 @@ public inherited sharing class PicklistUtil {
   }
 
 /**
- *	Get picklist labels
- *	@param Schema.SObjectField
- *	@return List<String>
+ *  Get picklist labels
+ *  @param Schema.SObjectField
+ *  @return List<String>
  */
   public static List<String> getLabels(Schema.SObjectField field) {
     Set<String> result = getValueByLabel(field).keySet();
@@ -48,10 +48,10 @@ public inherited sharing class PicklistUtil {
   }
 
 /**
- *	Get picklist labels
- *	@param String The sObject name
- *	@param String The sObject field name
- *	@return List<String>
+ *  Get picklist labels
+ *  @param String The sObject name
+ *  @param String The sObject field name
+ *  @return List<String>
  */
   @AuraEnabled
   public static List<String> getLabels(String sObjectName, String fieldName) {
@@ -68,10 +68,10 @@ public inherited sharing class PicklistUtil {
   }
 
 /**
- *	Get picklist values
- *	@param String The sObject name
- *	@param String The sObject field name
- *	@return List<String>
+ *  Get picklist values
+ *  @param String The sObject name
+ *  @param String The sObject field name
+ *  @return List<String>
  */
   @AuraEnabled
   public static List<String> getValues(String sObjectName, String fieldName) {
@@ -79,9 +79,9 @@ public inherited sharing class PicklistUtil {
   }
 
 /**
- *	Get map of picklist value by label
- *	@param Schema.SObjectField
- *	@return Map<String,String>
+ *  Get map of picklist value by label
+ *  @param Schema.SObjectField
+ *  @return Map<String,String>
  */
   public static Map<String, String> getValueByLabel(Schema.SObjectField field) {
     Map<String, String> result = new Map<String, String>();
@@ -123,16 +123,16 @@ public inherited sharing class PicklistUtil {
  */
   public static Map<String, String> getCountryValueByLabel() {
     Map<String, String> result = new Map<String, String>();
-  	if (!isCodesEnabled) {
-  		return result;
-  	}
+    if (!isCodesEnabled) {
+      return result;
+    }
     Schema.SObjectField field = SObjectUtil.getAllFields('User').get('CountryCode');
-  	for (Schema.PicklistEntry ple : field.getDescribe().getPicklistValues()) {
-  		if (ple.isActive()) {
-  			result.put(ple.getLabel(), ple.getValue());
-  		}
-  	}
-  	return result;
+    for (Schema.PicklistEntry ple : field.getDescribe().getPicklistValues()) {
+      if (ple.isActive()) {
+        result.put(ple.getLabel(), ple.getValue());
+      }
+    }
+    return result;
   }
 
 /**
@@ -164,11 +164,11 @@ public inherited sharing class PicklistUtil {
       return result;
     }
     Schema.SObjectField field = SObjectUtil.getAllFields('User').get('StateCode');
-  	for (Schema.PicklistEntry ple : field.getDescribe().getPicklistValues()) {
-  		if (ple.isActive()) {
-  			result.put(ple.getLabel(), ple.getValue());
-  		}
-  	}
+    for (Schema.PicklistEntry ple : field.getDescribe().getPicklistValues()) {
+      if (ple.isActive()) {
+        result.put(ple.getLabel(), ple.getValue());
+      }
+    }
     return result;
   }
 

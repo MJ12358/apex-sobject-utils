@@ -27,22 +27,22 @@
 
 public class CrudException extends DatabaseException {
 
-	public CrudException(DatabaseOperation operation, SObject sObj) {
-		this(operation, sObj.getSObjectType());
-	}
+  public CrudException(DatabaseOperation operation, SObject sObj) {
+    this(operation, sObj.getSObjectType());
+  }
 
-	public CrudException(DatabaseOperation operation, Schema.SObjectType sObjectType) {
-		this(operation, sObjectType.getDescribe());
-	}
+  public CrudException(DatabaseOperation operation, Schema.SObjectType sObjectType) {
+    this(operation, sObjectType.getDescribe());
+  }
 
-	public CrudException(DatabaseOperation operation, Schema.DescribeSObjectResult sObjectDesc) {
-		String message = String.format(System.Label.SObjectCrudException,
-			new List<String>{
-				operation.name(),
-				sObjectDesc.getName()
-			}
-		);
-		this.setMessage(message);
-	}
+  public CrudException(DatabaseOperation operation, Schema.DescribeSObjectResult sObjectDesc) {
+    String message = String.format(System.Label.SObjectCrudException,
+      new List<String>{
+        operation.name(),
+        sObjectDesc.getName()
+      }
+    );
+    this.setMessage(message);
+  }
 
 }

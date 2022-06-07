@@ -27,36 +27,36 @@
 
 public inherited sharing class SimpleDml implements IDml {
 
-	public void onInsert(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		insert records;
-	}
+  public void onInsert(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    insert records;
+  }
 
-	public void onUpdate(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		update records;
-	}
+  public void onUpdate(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    update records;
+  }
 
-	public void onUpsert(List<SObject> records, Schema.SObjectField externalId) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		if (externalId != null) {
-			Database.upsert(records, externalId);
-		} else {
-			Database.upsert(records);
-		}
-	}
+  public void onUpsert(List<SObject> records, Schema.SObjectField externalId) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    if (externalId != null) {
+      Database.upsert(records, externalId);
+    } else {
+      Database.upsert(records);
+    }
+  }
 
-	public void onDelete(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		delete records;
-	}
+  public void onDelete(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    delete records;
+  }
 
 }

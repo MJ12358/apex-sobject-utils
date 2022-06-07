@@ -38,11 +38,11 @@ public inherited sharing class AddressUtil {
   }
 
 /**
- *	Copy address fields
- *	@param System.Address The address to copy from
- *	@param SObject The sObject to copy the address to
+ *  Copy address fields
+ *  @param System.Address The address to copy from
+ *  @param SObject The sObject to copy the address to
  */
-	public static void copy(System.Address addr, SObject obj) {
+  public static void copy(System.Address addr, SObject obj) {
     if (addr == null || obj == null) {
       return;
     }
@@ -57,14 +57,14 @@ public inherited sharing class AddressUtil {
       obj.put('CountryCode', addr.getCountryCode());
       obj.put('StateCode', addr.getStateCode());
     }
-	}
+  }
 
 /**
- *	Copy address fields
- *	@param SObject The sObject to copy the address from
- *	@param SObject The sObject to copy the address to
+ *  Copy address fields
+ *  @param SObject The sObject to copy the address from
+ *  @param SObject The sObject to copy the address to
  */
-	public static void copy(SObject fromObj, SObject toObj) {
+  public static void copy(SObject fromObj, SObject toObj) {
     if (fromObj == null || toObj == null) {
       return;
     }
@@ -97,14 +97,14 @@ public inherited sharing class AddressUtil {
         toObj.put('StateCode', fromObj.get('StateCode'));
       }
     }
-	}
+  }
 
 /**
- *	Copy billing address fields
- *	@param System.Address The address to copy from
- *	@param SObject The sObject to copy the address to
+ *  Copy billing address fields
+ *  @param System.Address The address to copy from
+ *  @param SObject The sObject to copy the address to
  */
-	public static void copyToBilling(System.Address addr, SObject obj) {
+  public static void copyToBilling(System.Address addr, SObject obj) {
     if (addr == null || obj == null) {
       return;
     }
@@ -119,14 +119,14 @@ public inherited sharing class AddressUtil {
       obj.put('BillingCountryCode', addr.getCountryCode());
       obj.put('BillingStateCode', addr.getStateCode());
     }
-	}
+  }
 
 /**
- *	Copy shipping address fields
- *	@param System.Address The address to copy from
- *	@param SObject The sObject to copy the address to
+ *  Copy shipping address fields
+ *  @param System.Address The address to copy from
+ *  @param SObject The sObject to copy the address to
  */
-	public static void copyToShipping(System.Address addr, SObject obj) {
+  public static void copyToShipping(System.Address addr, SObject obj) {
     if (addr == null || obj == null) {
       return;
     }
@@ -141,12 +141,12 @@ public inherited sharing class AddressUtil {
       obj.put('ShippingCountryCode', addr.getCountryCode());
       obj.put('ShippingStateCode', addr.getStateCode());
     }
-	}
+  }
 
 /**
- *	Copy mailing address fields
- *	@param System.Address The address to copy from
- *	@param SObject The sObject to copy the address to
+ *  Copy mailing address fields
+ *  @param System.Address The address to copy from
+ *  @param SObject The sObject to copy the address to
  */
   public static void copyToMailing(System.Address addr, SObject obj) {
     if (addr == null || obj == null) {
@@ -166,69 +166,69 @@ public inherited sharing class AddressUtil {
   }
 
 /**
- *	Is an address empty (skip checking country it defaults to US)
- *	@param System.Address
- *	@return Boolean
+ *  Is an address empty (skip checking country it defaults to US)
+ *  @param System.Address
+ *  @return Boolean
  */
-	public static Boolean isEmpty(System.Address addr) {
+  public static Boolean isEmpty(System.Address addr) {
     if (addr == null) {
       return true;
     }
-		return String.isBlank(addr.getCity())
-			&& String.isBlank(addr.getPostalCode())
-			&& String.isBlank(addr.getState())
-			&& String.isBlank(addr.getStreet());
-	}
+    return String.isBlank(addr.getCity())
+      && String.isBlank(addr.getPostalCode())
+      && String.isBlank(addr.getState())
+      && String.isBlank(addr.getStreet());
+  }
 
 /**
- *	Is an address empty (skip checking country it defaults to US)
- *	@param SObject
- *	@return Boolean
+ *  Is an address empty (skip checking country it defaults to US)
+ *  @param SObject
+ *  @return Boolean
  */
-	public static Boolean isEmpty(SObject obj) {
+  public static Boolean isEmpty(SObject obj) {
     if (obj == null) {
       return true;
     }
-		return obj.get('City') == null
-			&& obj.get('PostalCode') == null
-			&& obj.get('State') == null
-			&& obj.get('Street') == null;
-	}
+    return obj.get('City') == null
+      && obj.get('PostalCode') == null
+      && obj.get('State') == null
+      && obj.get('Street') == null;
+  }
 
 /**
- *	Is billing address empty (skip checking country it defaults to US)
- *	@param SObject
- *	@return Boolean
+ *  Is billing address empty (skip checking country it defaults to US)
+ *  @param SObject
+ *  @return Boolean
  */
-	public static Boolean isBillingEmpty(SObject obj) {
+  public static Boolean isBillingEmpty(SObject obj) {
     if (obj == null) {
       return true;
     }
-		return obj.get('BillingCity') == null
-			&& obj.get('BillingPostalCode') == null
-			&& obj.get('BillingState') == null
-			&& obj.get('BillingStreet') == null;
-	}
+    return obj.get('BillingCity') == null
+      && obj.get('BillingPostalCode') == null
+      && obj.get('BillingState') == null
+      && obj.get('BillingStreet') == null;
+  }
 
 /**
- *	Is shipping address empty (skip checking country it defaults to US)
- *	@param SObject
- *	@return Boolean
+ *  Is shipping address empty (skip checking country it defaults to US)
+ *  @param SObject
+ *  @return Boolean
  */
-	public static Boolean isShippingEmpty(SObject obj) {
+  public static Boolean isShippingEmpty(SObject obj) {
     if (obj == null) {
       return true;
     }
-		return obj.get('ShippingCity') == null
-			&& obj.get('ShippingPostalCode') == null
-			&& obj.get('ShippingState') == null
-			&& obj.get('ShippingStreet') == null;
-	}
+    return obj.get('ShippingCity') == null
+      && obj.get('ShippingPostalCode') == null
+      && obj.get('ShippingState') == null
+      && obj.get('ShippingStreet') == null;
+  }
 
 /**
- *	Is mailing address empty (skip checking country it defaults to US)
- *	@param SObject
- *	@return Boolean
+ *  Is mailing address empty (skip checking country it defaults to US)
+ *  @param SObject
+ *  @return Boolean
  */
   public static Boolean isMailingEmpty(SObject obj) {
     if (obj == null) {
@@ -241,42 +241,42 @@ public inherited sharing class AddressUtil {
   }
 
 /**
- *	Did the address change
- *	@param SObject
- *	@param SObject
- *	@return Boolean
+ *  Did the address change
+ *  @param SObject
+ *  @param SObject
+ *  @return Boolean
  */
-	public static Boolean hasChanged(SObject newObj, SObject oldObj) {
-		if (newObj == null || oldObj == null) {
-			return false;
-		}
-		return newObj.get('City') != oldObj.get('City')
+  public static Boolean hasChanged(SObject newObj, SObject oldObj) {
+    if (newObj == null || oldObj == null) {
+      return false;
+    }
+    return newObj.get('City') != oldObj.get('City')
       || newObj.get('Country') != oldObj.get('Country')
       || newObj.get('Latitude') != oldObj.get('Latitude')
-			|| newObj.get('Longitude') != oldObj.get('Longitude')
+      || newObj.get('Longitude') != oldObj.get('Longitude')
       || newObj.get('PostalCode') != oldObj.get('PostalCode')
-			|| newObj.get('State') != oldObj.get('State')
-			|| newObj.get('Street') != oldObj.get('Street');
-	}
+      || newObj.get('State') != oldObj.get('State')
+      || newObj.get('Street') != oldObj.get('Street');
+  }
 
 /**
- *	Did the address change
- *	@param System.Address
- *	@param System.Address
- *	@return Boolean
+ *  Did the address change
+ *  @param System.Address
+ *  @param System.Address
+ *  @return Boolean
  */
-	public static Boolean hasChanged(System.Address newAddr, System.Address oldAddr) {
-		if (newAddr == null || oldAddr == null) {
-			return false;
-		}
-		return newAddr.getCity() != oldAddr.getCity()
+  public static Boolean hasChanged(System.Address newAddr, System.Address oldAddr) {
+    if (newAddr == null || oldAddr == null) {
+      return false;
+    }
+    return newAddr.getCity() != oldAddr.getCity()
       || newAddr.getCountry() != oldAddr.getCountry()
       || newAddr.getCountryCode() != oldAddr.getCountryCode()
       || newAddr.getLatitude() != oldAddr.getLatitude()
       || newAddr.getLongitude() != oldAddr.getLongitude()
       || newAddr.getPostalCode() != oldAddr.getPostalCode()
-			|| newAddr.getState() != oldAddr.getState()
-			|| newAddr.getStateCode() != oldAddr.getStateCode()
-			|| newAddr.getStreet() != oldAddr.getStreet();
-	}
+      || newAddr.getState() != oldAddr.getState()
+      || newAddr.getStateCode() != oldAddr.getStateCode()
+      || newAddr.getStreet() != oldAddr.getStreet();
+  }
 }

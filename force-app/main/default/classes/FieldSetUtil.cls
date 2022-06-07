@@ -28,9 +28,9 @@
 public inherited sharing class FieldSetUtil {
 
 /**
- *	Get Fieldset fields
- *	@param Schema.FieldSet
- *	@return List<String>
+ *  Get Fieldset fields
+ *  @param Schema.FieldSet
+ *  @return List<String>
  */
   public static List<String> getFields(Schema.FieldSet fieldSet) {
     List<String> result = new List<String>();
@@ -44,10 +44,10 @@ public inherited sharing class FieldSetUtil {
   }
 
 /**
- *	Get Fieldset fields
- *	@param Schema.SObjectType
- *	@param String The field set name
- *	@return List<String>
+ *  Get Fieldset fields
+ *  @param Schema.SObjectType
+ *  @param String The field set name
+ *  @return List<String>
  */
   public static List<String> getFields(Schema.SObjectType sObjectType, String fieldSetName) {
     Schema.FieldSet fieldSet = sObjectType?.getDescribe().fieldSets.getMap().get(fieldSetName);
@@ -55,10 +55,10 @@ public inherited sharing class FieldSetUtil {
   }
 
 /**
- *	Get Fieldset fields
- *	@param String The sObject name
- *	@param String The field set name
- *	@return List<String>
+ *  Get Fieldset fields
+ *  @param String The sObject name
+ *  @param String The field set name
+ *  @return List<String>
  */
   @AuraEnabled
   public static List<String> getFields(String sObjectName, String fieldSetName) {
@@ -67,10 +67,10 @@ public inherited sharing class FieldSetUtil {
   }
 
 /**
- *	Get Fieldset fields described
- *	@param Schema.SObjectType
- *	@param Schema.FieldSet
- *	@return List<Schema.DescribeFieldResult>
+ *  Get Fieldset fields described
+ *  @param Schema.SObjectType
+ *  @param Schema.FieldSet
+ *  @return List<Schema.DescribeFieldResult>
  */
   public static List<Schema.DescribeFieldResult> getDescribed(Schema.SObjectType sObjectType, Schema.FieldSet fieldSet) {
     List<Schema.DescribeFieldResult> result = new List<Schema.DescribeFieldResult>();
@@ -94,10 +94,10 @@ public inherited sharing class FieldSetUtil {
   }
 
 /**
- *	Get Fieldset fields described
- *	@param Schema.SObjectType
- *	@param String The field set name
- *	@return List<Schema.DescribeFieldResult>
+ *  Get Fieldset fields described
+ *  @param Schema.SObjectType
+ *  @param String The field set name
+ *  @return List<Schema.DescribeFieldResult>
  */
   public static List<Schema.DescribeFieldResult> getDescribed(Schema.SObjectType sObjectType, String fieldSetName) {
     Schema.FieldSet fieldSet = sObjectType?.getDescribe().fieldSets.getMap().get(fieldSetName);
@@ -105,10 +105,10 @@ public inherited sharing class FieldSetUtil {
   }
 
 /**
- *	Get Fieldset fields described
- *	@param String The sObject name
- *	@param String The field set name
- *	@return List<Schema.DescribeFieldResult>
+ *  Get Fieldset fields described
+ *  @param String The sObject name
+ *  @param String The field set name
+ *  @return List<Schema.DescribeFieldResult>
  */
   public static List<Schema.DescribeFieldResult> getDescribed(String sObjectName, String fieldSetName) {
     Schema.SObjectType sObjectType = SObjectUtil.convertNameToType(sObjectName);
@@ -116,10 +116,10 @@ public inherited sharing class FieldSetUtil {
   }
 
 /**
- *	Get Fieldset fields described
- *	@param String The sObject name
- *	@param String The field set name
- *	@return String
+ *  Get Fieldset fields described
+ *  @param String The sObject name
+ *  @param String The field set name
+ *  @return String
  */
   @AuraEnabled
   public static String getDescribedForAura(String sObjectName, String fieldSetName) {

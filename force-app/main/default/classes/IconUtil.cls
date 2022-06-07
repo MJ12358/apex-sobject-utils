@@ -28,9 +28,9 @@
 public inherited sharing class IconUtil {
 
 /**
- *	Get the sObject lightning icon
- *	@param String The sObject name
- *	@return String The icon name formatted for slds
+ *  Get the sObject lightning icon
+ *  @param String The sObject name
+ *  @return String The icon name formatted for slds
  */
   @AuraEnabled
   public static String getLightningIcon(String sObjectName) {
@@ -155,18 +155,18 @@ public inherited sharing class IconUtil {
   }
 
 /**
- *	Get the sObject lightning icon
- *	@param Schema.SObjectType The sObject type
- *	@return String
+ *  Get the sObject lightning icon
+ *  @param Schema.SObjectType The sObject type
+ *  @return String
  */
   public static String getLightningIcon(Schema.SObjectType sObjectType) {
     return getLightningIcon(sObjectType?.getDescribe().getName());
   }
 
 /**
- *	Get the sObject lightning icon
- *	@param SObject The sObject
- *	@return String
+ *  Get the sObject lightning icon
+ *  @param SObject The sObject
+ *  @return String
  */
   public static String getLightningIcon(SObject sObj) {
     return getLightningIcon(sObj?.getSObjectType());

@@ -28,8 +28,8 @@
 public inherited sharing class RecordTypeUtil {
 
 /**
- *	Get record types
- *	@param Schema.SObjectType
+ *  Get record types
+ *  @param Schema.SObjectType
  *  @return Map<Id, String>
  */
   public static Map<Id, String> get(Schema.SObjectType sObjectType) {
@@ -46,8 +46,8 @@ public inherited sharing class RecordTypeUtil {
   }
 
 /**
- *	Get record types
- *	@param String sObjectName
+ *  Get record types
+ *  @param String sObjectName
  *  @return Map<Id, String>
  */
   @AuraEnabled
@@ -56,10 +56,10 @@ public inherited sharing class RecordTypeUtil {
   }
 
 /**
- *	Get record type id
- *	@param Schema.DescribeSObjectResult The sObjectDescribe
- *	@param String The record type name
- *	@return Id The record type ID
+ *  Get record type id
+ *  @param Schema.DescribeSObjectResult The sObjectDescribe
+ *  @param String The record type name
+ *  @return Id The record type ID
  */
   public static Id getId(Schema.DescribeSObjectResult sObjectDesc, String recTypeName) {
     if (sObjectDesc != null && String.isNotBlank(recTypeName)) {
@@ -72,10 +72,10 @@ public inherited sharing class RecordTypeUtil {
   }
 
 /**
- *	Get record type id
- *	@param Schema.SObjectType The sObjectType
- *	@param String The record type name
- *	@return Id The record type ID
+ *  Get record type id
+ *  @param Schema.SObjectType The sObjectType
+ *  @param String The record type name
+ *  @return Id The record type ID
  */
   public static Id getId(Schema.SObjectType sObjectType, String recTypeName) {
     if (sObjectType != null) {
@@ -110,10 +110,10 @@ public inherited sharing class RecordTypeUtil {
   }
 
 /**
- *	Get record type label
- *	@param Schema.DescribeSObjectResult The sObjectDescribe
- *	@param Id The record type id
- *	@return String The record type label
+ *  Get record type label
+ *  @param Schema.DescribeSObjectResult The sObjectDescribe
+ *  @param Id The record type id
+ *  @return String The record type label
  */
   public static String getLabel(Schema.DescribeSObjectResult sObjectDesc, Id recTypeId) {
     if (sObjectDesc != null && String.isNotBlank(recTypeId)) {
@@ -126,30 +126,30 @@ public inherited sharing class RecordTypeUtil {
   }
 
 /**
- *	Get record type label
- *	@param Schema.SObjectType The sObjectType
- *	@param Id The record type id
- *	@return String The record type label
+ *  Get record type label
+ *  @param Schema.SObjectType The sObjectType
+ *  @param Id The record type id
+ *  @return String The record type label
  */
   public static String getLabel(Schema.SObjectType sObjectType, Id recTypeId) {
     return getLabel(sObjectType?.getDescribe(), recTypeId);
   }
 
 /**
- *	Get record type label
- *	@param SObject The sObject
- *	@param Id The record type id
- *	@return String The record type label
+ *  Get record type label
+ *  @param SObject The sObject
+ *  @param Id The record type id
+ *  @return String The record type label
  */
   public static String getLabel(SObject sObj, Id recTypeId) {
     return getLabel(sObj?.getSObjectType(), recTypeId);
   }
 
 /**
- *	Get record type label
- *	@param String The sObject name
- *	@param Id The record type id
- *	@return String The record type label
+ *  Get record type label
+ *  @param String The sObject name
+ *  @param Id The record type id
+ *  @return String The record type label
  */
   @AuraEnabled
   public static String getLabel(String sObjectName, Id recTypeId) {
@@ -158,10 +158,10 @@ public inherited sharing class RecordTypeUtil {
   }
 
 /**
- *	Get record type name
- *	@param Schema.DescribeSObjectResult The sObjectDescribe
- *	@param Id The record type id
- *	@return String The record type name
+ *  Get record type name
+ *  @param Schema.DescribeSObjectResult The sObjectDescribe
+ *  @param Id The record type id
+ *  @return String The record type name
  */
   public static String getName(Schema.DescribeSObjectResult sObjectDesc, Id recTypeId) {
     if (sObjectDesc != null && String.isNotBlank(recTypeId)) {
@@ -174,30 +174,30 @@ public inherited sharing class RecordTypeUtil {
   }
 
 /**
- *	Get record type name
- *	@param Schema.SObjectType The sObjectType
- *	@param Id The record type id
- *	@return String The record type name
+ *  Get record type name
+ *  @param Schema.SObjectType The sObjectType
+ *  @param Id The record type id
+ *  @return String The record type name
  */
   public static String getName(Schema.SObjectType sObjectType, Id recTypeId) {
     return getName(sObjectType?.getDescribe(), recTypeId);
   }
 
 /**
- *	Get record type name
- *	@param SObject The sObject
- *	@param Id The record type id
- *	@return String The record type name
+ *  Get record type name
+ *  @param SObject The sObject
+ *  @param Id The record type id
+ *  @return String The record type name
  */
   public static String getName(SObject sObj, Id recTypeId) {
     return getName(sObj?.getSObjectType(), recTypeId);
   }
 
 /**
- *	Get record type name
- *	@param String The sObject name
- *	@param Id The record type id
- *	@return String The record type name
+ *  Get record type name
+ *  @param String The sObject name
+ *  @param Id The record type id
+ *  @return String The record type name
  */
   @AuraEnabled
   public static String getName(String sObjectName, Id recTypeId) {

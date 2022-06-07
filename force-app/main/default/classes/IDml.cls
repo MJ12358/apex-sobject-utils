@@ -27,12 +27,12 @@
 
 public interface IDml {
 
-	void onInsert(List<SObject> records);
+  void onInsert(List<SObject> records);
 
-	void onUpdate(List<SObject> records);
+  void onUpdate(List<SObject> records);
 
-	void onUpsert(List<SObject> records, Schema.SObjectField externalId);
+  void onUpsert(List<SObject> records, Schema.SObjectField externalId);
 
-	void onDelete(List<SObject> records);
-	
+  void onDelete(List<SObject> records);
+  
 }

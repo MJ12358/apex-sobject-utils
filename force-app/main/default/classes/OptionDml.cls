@@ -27,52 +27,52 @@
 
 public inherited sharing class OptionDml implements IDml {
 
-	private Database.DMLOptions options;
+  private Database.DMLOptions options;
 
-	public OptionDml(Database.DMLOptions options) {
-		if (options == null) {
-			throw new IllegalArgumentException(System.Label.SObjectDmlOptionsInvalid);
-		}
-		this.options = options;
-	}
+  public OptionDml(Database.DMLOptions options) {
+    if (options == null) {
+      throw new IllegalArgumentException(System.Label.SObjectDmlOptionsInvalid);
+    }
+    this.options = options;
+  }
 
-	public void onInsert(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		Database.insert(records, this.options);
-	}
+  public void onInsert(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    Database.insert(records, this.options);
+  }
 
-	public void onUpdate(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		Database.update(records, this.options);
-	}
+  public void onUpdate(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    Database.update(records, this.options);
+  }
 
-	public void onUpsert(List<SObject> records, Schema.SObjectField externalId) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		if (externalId != null) {
-			Database.upsert(records, externalId, getOptAllOrNone());
-		} else {
-			Database.upsert(records, getOptAllOrNone());
-		}
-	}
+  public void onUpsert(List<SObject> records, Schema.SObjectField externalId) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    if (externalId != null) {
+      Database.upsert(records, externalId, getOptAllOrNone());
+    } else {
+      Database.upsert(records, getOptAllOrNone());
+    }
+  }
 
-	public void onDelete(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		Database.delete(records, getOptAllOrNone());
-	}
+  public void onDelete(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    Database.delete(records, getOptAllOrNone());
+  }
 
-	private Boolean getOptAllOrNone() {
-		if (this.options?.OptAllOrNone == true) {
-			return this.options.OptAllOrNone;
-		}
-		return false;
-	}
+  private Boolean getOptAllOrNone() {
+    if (this.options?.OptAllOrNone == true) {
+      return this.options.OptAllOrNone;
+    }
+    return false;
+  }
 
 }

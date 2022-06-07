@@ -29,136 +29,136 @@
 
 public inherited sharing class SecureDml implements IDml {
 
-	private Boolean enforceFls;
+  private Boolean enforceFls;
 
-	public SecureDml() {
-		this(true);
-	}
+  public SecureDml() {
+    this(true);
+  }
 
-	public SecureDml(Boolean enforceFls) {
-		this.enforceFls = enforceFls;
-	}
+  public SecureDml(Boolean enforceFls) {
+    this.enforceFls = enforceFls;
+  }
 
-	public void onInsert(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		DatabaseOperation operation = DatabaseOperation.INSERTX;
-		Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
-		if (!sObjectDesc.isCreateable()) {
-			throw new CrudException(operation, sObjectDesc);
-		}
-		if (this.enforceFls) {
-			// checkFLS(operation, sObjectDesc, records);
-			// System.SObjectAccessDecision decision = System.Security.stripInaccessible(AccessType.CREATABLE, records);
-			// checkRemovedFields(operation, sObjectDesc, decision);
-			// records = decision.getRecords(); //! this breaks the reference to the original passed in records
-		}
-		insert records;
-	}
+  public void onInsert(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    DatabaseOperation operation = DatabaseOperation.INSERTX;
+    Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
+    if (!sObjectDesc.isCreateable()) {
+      throw new CrudException(operation, sObjectDesc);
+    }
+    if (this.enforceFls) {
+      // checkFLS(operation, sObjectDesc, records);
+      // System.SObjectAccessDecision decision = System.Security.stripInaccessible(AccessType.CREATABLE, records);
+      // checkRemovedFields(operation, sObjectDesc, decision);
+      // records = decision.getRecords(); //! this breaks the reference to the original passed in records
+    }
+    insert records;
+  }
 
-	public void onUpdate(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		DatabaseOperation operation = DatabaseOperation.UPDATEX;
-		Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
-		if (!sObjectDesc.isUpdateable()) {
-			throw new CrudException(operation, sObjectDesc);
-		}
-		if (this.enforceFls) {
-			// checkFLS(operation, sObjectDesc, records);
-			// System.SObjectAccessDecision decision = System.Security.stripInaccessible(AccessType.UPDATABLE, records);
-			// checkRemovedFields(operation, sObjectDesc, decision);
-			// records = decision.getRecords();
-		}
-		update records;
-	}
+  public void onUpdate(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    DatabaseOperation operation = DatabaseOperation.UPDATEX;
+    Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
+    if (!sObjectDesc.isUpdateable()) {
+      throw new CrudException(operation, sObjectDesc);
+    }
+    if (this.enforceFls) {
+      // checkFLS(operation, sObjectDesc, records);
+      // System.SObjectAccessDecision decision = System.Security.stripInaccessible(AccessType.UPDATABLE, records);
+      // checkRemovedFields(operation, sObjectDesc, decision);
+      // records = decision.getRecords();
+    }
+    update records;
+  }
 
-	public void onUpsert(List<SObject> records, Schema.SObjectField externalId) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		DatabaseOperation operation = DatabaseOperation.UPSERTX;
-		Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
-		if (!sObjectDesc.isCreateable() || !sObjectDesc.isUpdateable()) {
-			throw new CrudException(operation, sObjectDesc);
-		}
-		if (this.enforceFls) {
-			// checkFLS(operation, sObjectDesc, records);
-			// System.SObjectAccessDecision decision = System.Security.stripInaccessible(AccessType.UPSERTABLE, records);
-			// checkRemovedFields(operation, sObjectDesc, decision);
-			// records = decision.getRecords();
-		}
-		if (externalId != null) {
-			Database.upsert(records, externalId);
-		} else {
-			Database.upsert(records);
-		}
-	}
+  public void onUpsert(List<SObject> records, Schema.SObjectField externalId) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    DatabaseOperation operation = DatabaseOperation.UPSERTX;
+    Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
+    if (!sObjectDesc.isCreateable() || !sObjectDesc.isUpdateable()) {
+      throw new CrudException(operation, sObjectDesc);
+    }
+    if (this.enforceFls) {
+      // checkFLS(operation, sObjectDesc, records);
+      // System.SObjectAccessDecision decision = System.Security.stripInaccessible(AccessType.UPSERTABLE, records);
+      // checkRemovedFields(operation, sObjectDesc, decision);
+      // records = decision.getRecords();
+    }
+    if (externalId != null) {
+      Database.upsert(records, externalId);
+    } else {
+      Database.upsert(records);
+    }
+  }
 
-	public void onDelete(List<SObject> records) {
-		if (records == null || records.isEmpty()) {
-			return;
-		}
-		DatabaseOperation operation = DatabaseOperation.DELETEX;
-		Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
-		if (!sObjectDesc.isDeletable()) {
-			throw new CrudException(operation, sObjectDesc);
-		}
-		delete records;
-	}
+  public void onDelete(List<SObject> records) {
+    if (records == null || records.isEmpty()) {
+      return;
+    }
+    DatabaseOperation operation = DatabaseOperation.DELETEX;
+    Schema.DescribeSObjectResult sObjectDesc = records[0].getSObjectType().getDescribe();
+    if (!sObjectDesc.isDeletable()) {
+      throw new CrudException(operation, sObjectDesc);
+    }
+    delete records;
+  }
 
-	//! StripInaccessable will remove fields that are not updateable (ie. Formula fields, System fields (createdDatetime, modifiedDatetime...))
-	//! 	 and using a selector these fields would be queried, resulting in an FlsException on those fields, even tho the user has access to them
-	private void checkRemovedFields(DatabaseOperation operation, Schema.DescribeSObjectResult sObjectDesc, System.SObjectAccessDecision decision) {
-		Map<String, Set<String>> removedFields = decision.getRemovedFields();
-		if (!removedFields.isEmpty()) {
-			System.debug(removedFields);
-			Map<String, Schema.SObjectField> fieldMap = SObjectUtil.getFieldMap(sObjectDesc);
-			Set<String> fields = removedFields.get(sObjectDesc.getName());
-			System.debug(fields);
-			Schema.SObjectField field = fieldMap.get(new List<String>(fields)[0]);
-			System.debug(field);
-			System.debug(field.getDescribe());
-			throw new FlsException(operation, sObjectDesc, field);
-		}
-	}
+  //! StripInaccessable will remove fields that are not updateable (ie. Formula fields, System fields (createdDatetime, modifiedDatetime...))
+  //!    and using a selector these fields would be queried, resulting in an FlsException on those fields, even tho the user has access to them
+  private void checkRemovedFields(DatabaseOperation operation, Schema.DescribeSObjectResult sObjectDesc, System.SObjectAccessDecision decision) {
+    Map<String, Set<String>> removedFields = decision.getRemovedFields();
+    if (!removedFields.isEmpty()) {
+      System.debug(removedFields);
+      Map<String, Schema.SObjectField> fieldMap = SObjectUtil.getFieldMap(sObjectDesc);
+      Set<String> fields = removedFields.get(sObjectDesc.getName());
+      System.debug(fields);
+      Schema.SObjectField field = fieldMap.get(new List<String>(fields)[0]);
+      System.debug(field);
+      System.debug(field.getDescribe());
+      throw new FlsException(operation, sObjectDesc, field);
+    }
+  }
 
-	private void checkFLS(DatabaseOperation operation, Schema.DescribeSObjectResult sObjectDesc, List<SObject> records) {
-		Map<String, Schema.SObjectField> fieldMap = SObjectUtil.getFieldMap(sObjectDesc);
-		for (SObject record : records) {
-			Map<String, Object> popFields = record.getPopulatedFieldsAsMap();
-			for (String fieldName : popFields.keySet()) {
-				Schema.SObjectField field = fieldMap.get(fieldName);
-				Schema.DescribeFieldResult dfr = field.getDescribe();
-				// technically this should already be done by the selector
-				if (!dfr.isAccessible()) {
-					throw new FlsException(operation, sObjectDesc, field);
-				}
-				if (!dfr.isAutoNumber() && !dfr.isCalculated() && !dfr.isCascadeDelete()
-					//! hold on... these should be adjusted...
-					&& (dfr.isCustom() || dfr.getName() == 'Id' || dfr.isNameField())) {
-					switch on operation {
-						when INSERTX {
-							if (!dfr.isAccessible()) {
-								// hmm... just throw earlier to avoid unnecessary overhead
-							}
-						}
-						when UPDATEX {
-							if (!dfr.isUpdateable()) {
-								throw new FlsException(operation, sObjectDesc, field);
-							}
-						}
-						when UPSERTX {
-							if (!dfr.isCreateable() || !dfr.isUpdateable()) {
-								throw new FlsException(operation, sObjectDesc, field);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+  private void checkFLS(DatabaseOperation operation, Schema.DescribeSObjectResult sObjectDesc, List<SObject> records) {
+    Map<String, Schema.SObjectField> fieldMap = SObjectUtil.getFieldMap(sObjectDesc);
+    for (SObject record : records) {
+      Map<String, Object> popFields = record.getPopulatedFieldsAsMap();
+      for (String fieldName : popFields.keySet()) {
+        Schema.SObjectField field = fieldMap.get(fieldName);
+        Schema.DescribeFieldResult dfr = field.getDescribe();
+        // technically this should already be done by the selector
+        if (!dfr.isAccessible()) {
+          throw new FlsException(operation, sObjectDesc, field);
+        }
+        if (!dfr.isAutoNumber() && !dfr.isCalculated() && !dfr.isCascadeDelete()
+          //! hold on... these should be adjusted...
+          && (dfr.isCustom() || dfr.getName() == 'Id' || dfr.isNameField())) {
+          switch on operation {
+            when INSERTX {
+              if (!dfr.isAccessible()) {
+                // hmm... just throw earlier to avoid unnecessary overhead
+              }
+            }
+            when UPDATEX {
+              if (!dfr.isUpdateable()) {
+                throw new FlsException(operation, sObjectDesc, field);
+              }
+            }
+            when UPSERTX {
+              if (!dfr.isCreateable() || !dfr.isUpdateable()) {
+                throw new FlsException(operation, sObjectDesc, field);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
 }
