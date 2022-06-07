@@ -151,7 +151,7 @@ public inherited sharing class DuplicateFinder {
     List<SObject> results = new List<SObject>();
     this.records.sort();
     for (MatchRecordWrapper wrap : this.records) {
-      results.add(wrap.record);
+      results.add(wrap.record.getRecord());
     }
     return results;
   }

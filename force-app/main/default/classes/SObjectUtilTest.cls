@@ -1,16 +1,17 @@
 @IsTest
 public class SObjectUtilTest {
 
-	private static Integer count;
+	private static Integer count = 2;
 
-	// @TestSetup
-	// static void testSetup() {
-	// 	new UserFactory().asRestricted().buildAndInsert();
-	// 	new AccountFactory(count).buildAndInsert();
-	// }
-
-	static {
-		count = 2;
+	@TestSetup
+	static void testSetup() {
+		List<Account> accounts = new List<Account>();
+    for (Integer i = 0; i < count; i++) {
+      Account acc = new Account();
+      acc.Name = 'Name' + i;
+      accounts.add(acc);
+    }
+    insert accounts;
 	}
 
 	@IsTest
@@ -45,9 +46,11 @@ public class SObjectUtilTest {
 	static void testConvertNameToLabel() {
 		Account acc = [SELECT Id FROM Account LIMIT 1];
 		Test.startTest();
-		String name = SObjectUtil.convertNameToLabel('Jobs__c');
+		String name = SObjectUtil.convertNameToLabel('Account');
+    String name2 = SObjectUtil.convertNameToLabel('InvalidSObject');
 		Test.stopTest();
-		System.assertEquals('Job', name, 'SObject label must match Job');
+		System.assertEquals('Account', name);
+    System.assertEquals(null, name2);
 	}
 
 	@IsTest
@@ -139,23 +142,24 @@ public class SObjectUtilTest {
 		System.assertEquals(count - 1, accs.size(), 'Record must be deleted');
 	}
 
-	@IsTest
-	static void testDeleteRecordRestricted() {
-		Account acc = [SELECT Id FROM Account LIMIT 1];
-		User user = [SELECT Id FROM User WHERE Username LIKE '%restricteduser%' LIMIT 1];
-		Test.startTest();
-		System.runAs(user) {
-			try {
-				SObjectUtil.deleteById(acc.Id);
-				System.assert(false, 'Expected an exception');
-			} catch (Exception e) {
-				System.assert(true, 'Exception caught');
-			}
-		}
-		Test.stopTest();
-		List<Account> accs = [SELECT Id FROM Account];
-		System.assertEquals(count, accs.size(), 'Record must not be deleted');
-	}
+  // TODO: create a restricted user
+	// @IsTest
+	// static void testDeleteRecordRestricted() {
+	// 	Account acc = [SELECT Id FROM Account LIMIT 1];
+	// 	User user = [SELECT Id FROM User WHERE Username LIKE '%restricteduser%' LIMIT 1];
+	// 	Test.startTest();
+	// 	System.runAs(user) {
+	// 		try {
+	// 			SObjectUtil.deleteById(acc.Id);
+	// 			System.assert(false, 'Expected an exception');
+	// 		} catch (Exception e) {
+	// 			System.assert(true, 'Exception caught');
+	// 		}
+	// 	}
+	// 	Test.stopTest();
+	// 	List<Account> accs = [SELECT Id FROM Account];
+	// 	System.assertEquals(count, accs.size(), 'Record must not be deleted');
+	// }
 
 	@IsTest
 	static void testUpdateRecords() {
@@ -183,52 +187,6 @@ public class SObjectUtilTest {
 		System.assertEquals('Testing', [SELECT Name FROM Account WHERE Id = :acc.Id].Name);
 	}
 
-	// @IsTest
-	// static void testCreateContentVersion() {
-	// 	File file = new File();
-	// 	file.body = 'ABCDE==';
-	// 	file.name = 'Testing.jpg';
-	// 	Account acc = [SELECT Id FROM Account LIMIT 1];
-	// 	Test.startTest();
-	// 	SObjectUtil.createContentVersion(new List<File>{ file }, acc.Id);
-	// 	Test.stopTest();
-	// 	System.assertEquals(1, [SELECT Count() FROM ContentVersion WHERE FirstPublishLocationId = :acc.Id]);
-	// }
-
-	@IsTest
-	static void testGetFieldSetFields() {
-		Test.startTest();
-		List<String> fields = SObjectUtil.getFieldSetFields('WorkOrder', 'Related_List');
-		Test.stopTest();
-		System.assertNotEquals(null, fields, 'Field set must be returned');
-	}
-
-	@IsTest
-	static void testGetFieldSetFieldsDesc() {
-		Test.startTest();
-		String result = SObjectUtil.getFieldSetFieldsDesc('WorkOrder', 'Related_List');
-		Test.stopTest();
-		System.assertNotEquals(null, result);
-	}
-
-	@IsTest
-	static void testGetPicklistValues() {
-		Test.startTest();
-		List<String> picklist = SObjectUtil.getPicklistValues('Account', 'Type');
-		Test.stopTest();
-		System.assert(picklist.size() > 0, 'Picklist values must be returned');
-	}
-
-	// @IsTest
-	// static void testGetCountryAndStatePicklistValues() {
-	// 	Test.startTest();
-	// 	List<String> countries = SObjectUtil.getCountryPicklistValues();
-	// 	List<String> states = SObjectUtil.getStatePicklistValues();
-	// 	Test.stopTest();
-	// 	System.assert(countries.size() > 0);
-	// 	System.assert(states.size() > 0);
-	// }
-
 	@IsTest
 	static void testGetReferenceTo() {
 		Test.startTest();
@@ -254,32 +212,6 @@ public class SObjectUtilTest {
 	}
 
 	@IsTest
-	static void testGetRecordTypeId() {
-		Test.startTest();
-		Id result = SObjectUtil.getRecordTypeId('Account', 'B2C');
-		Test.stopTest();
-		System.assertNotEquals(null, result);
-	}
-
-	@IsTest
-	static void testGetRecordTypeLabel() {
-		Id recordTypeId = [SELECT Id FROM RecordType WHERE SObjectType = 'Account' AND DeveloperName = 'B2C' LIMIT 1].Id;
-		Test.startTest();
-		String result = SObjectUtil.getRecordTypeLabel('Account', recordTypeId);
-		Test.stopTest();
-		System.assertNotEquals(null, result);
-	}
-
-	@IsTest
-	static void testGetRecordTypeName() {
-		Id recordTypeId = [SELECT Id FROM RecordType WHERE SObjectType = 'Account' AND DeveloperName = 'B2C' LIMIT 1].Id;
-		Test.startTest();
-		String result = SObjectUtil.getRecordTypeName('Account', recordTypeId);
-		Test.stopTest();
-		System.assertNotEquals(null, result);
-	}
-
-	@IsTest
 	static void testGetRelationshipName() {
 		Test.startTest();
 		System.assertEquals('Account', SObjectUtil.getRelationshipName('Contact', 'AccountId'));
@@ -296,102 +228,11 @@ public class SObjectUtilTest {
 	}
 
 	@IsTest
-	static void testCopyToAddress() {
-		User usr = [SELECT Address, Street FROM User LIMIT 1];
-		User newUsr = new User();
-		Test.startTest();
-		SObjectUtil.copyToAddress(usr.Address, newUsr);
-		Test.stopTest();
-		System.assertEquals(usr.Street, newUsr.Street);
-	}
-
-	@IsTest
-	static void testCopyToBillingAddress() {
-		Account acc = [SELECT BillingAddress, BillingStreet FROM Account LIMIT 1];
-		Account newAcc = new Account();
-		Test.startTest();
-		SObjectUtil.copyToBillingAddress(acc.BillingAddress, newAcc);
-		Test.stopTest();
-		System.assertEquals(acc.BillingStreet, newAcc.BillingStreet);
-	}
-
-	@IsTest
-	static void testCopyToShippingAddress() {
-		Account acc = [SELECT ShippingAddress, ShippingStreet FROM Account LIMIT 1];
-		Account newAcc = new Account();
-		Test.startTest();
-		SObjectUtil.copyToShippingAddress(acc.ShippingAddress, newAcc);
-		Test.stopTest();
-		System.assertEquals(acc.ShippingStreet, newAcc.ShippingStreet);
-	}
-
-	@IsTest
-	static void testIsAddressEmpty() {
-		Account acc = new Account();
-		WorkOrder wo = new WorkOrder();
-		Test.startTest();
-		System.assertEquals(true, SObjectUtil.isAddressEmpty(acc.ShippingAddress));
-		System.assertEquals(true, SObjectUtil.isAddressEmpty(wo));
-		wo.City = 'Testing';
-		System.assertEquals(false, SObjectUtil.isAddressEmpty(wo));
-		Test.stopTest();
-	}
-
-	@IsTest
-	static void testIsBillingAddressEmpty() {
-		Account acc = new Account();
-		Test.startTest();
-		System.assertEquals(true, SObjectUtil.isBillingAddressEmpty(acc));
-		acc.BillingStreet = 'Testing';
-		System.assertEquals(false, SObjectUtil.isBillingAddressEmpty(acc));
-		Test.stopTest();
-	}
-
-	@IsTest
-	static void testIsShippingAddressEmpty() {
-		Account acc = new Account();
-		Test.startTest();
-		System.assertEquals(true, SObjectUtil.isShippingAddressEmpty(acc));
-		acc.ShippingStreet = 'Testing';
-		System.assertEquals(false, SObjectUtil.isShippingAddressEmpty(acc));
-		Test.stopTest();
-	}
-
-	@IsTest
-	static void testHasAddressChanged() {
-		WorkOrder wo1 = new WorkOrder();
-		WorkOrder wo2 = new WorkOrder();
-		Test.startTest();
-		System.assertEquals(false, SObjectUtil.hasAddressChanged(wo1, wo2));
-		wo2.City = 'Testing';
-		System.assertEquals(true, SObjectUtil.hasAddressChanged(wo1, wo2));
-		Test.stopTest();
-	}
-
-	@IsTest
-	static void testLightningIconName() {
-		Test.startTest();
-		for (Schema.SObjectType sObjectType : SObjectUtil.globalDescribe.values()) {
-			String result = SObjectUtil.getLightningIconName(sObjectType.newSObject());
-			System.assert(String.isNotBlank(result));
-		}
-		Test.stopTest();
-	}
-
-	@IsTest
 	static void testGetMostRecentlyViewedRecord() {
 		Test.startTest();
 		SObject result = SObjectUtil.getMostRecentlyViewedRecord(Account.SObjectType);
 		Test.stopTest();
 		System.assertNotEquals(null, result);
-	}
-
-	@IsTest
-	static void testGetRecordTypes() {
-		Test.startTest();
-		Map<Id, String> results = SObjectUtil.getRecordTypes('Account');
-		Test.stopTest();
-		System.assertNotEquals(0, results.size());
 	}
 
 	@IsTest
@@ -402,21 +243,23 @@ public class SObjectUtilTest {
 		System.assertEquals(false, SObjectUtil.isValid('Testing'));
 		System.assertEquals(false, SObjectUtil.isValid('Account', 'Testing'));
 		System.assertEquals(true, SObjectUtil.isValid('WorkOrder', 'Account.Name'));
-		System.assertEquals(true, SObjectUtil.isValid('Order', 'Quote.Opportunity.Account.Name'));
 		System.assertEquals(false, SObjectUtil.isValid('WorkOrder', 'Account.Testing'));
-		System.assertEquals(true, SObjectUtil.isValid('WorkOrderLineItem', 'WorkOrder.Order__r.Account.Name'));
-		System.assertEquals(true, SObjectUtil.isValid('Employee__c', 'Manager__r.JobTitle__r.Department__c'));
 		// opposite
 		System.assertEquals(false, SObjectUtil.isNotValid('Account'));
 		System.assertEquals(false, SObjectUtil.isNotValid('Account', 'Name'));
 		System.assertEquals(true, SObjectUtil.isNotValid('Testing'));
 		System.assertEquals(true, SObjectUtil.isNotValid('Account', 'Testing'));
 		System.assertEquals(false, SObjectUtil.isNotValid('WorkOrder', 'Account.Name'));
-		System.assertEquals(false, SObjectUtil.isNotValid('Order', 'Quote.Opportunity.Account.Name'));
 		System.assertEquals(true, SObjectUtil.isNotValid('WorkOrder', 'Account.Testing'));
-		System.assertEquals(false, SObjectUtil.isNotValid('WorkOrderLineItem', 'WorkOrder.Order__r.Account.Name'));
-		System.assertEquals(false, SObjectUtil.isNotValid('Employee__c', 'Manager__r.JobTitle__r.Department__c'));
 		Test.stopTest();
 	}
+
+  @IsTest
+  static void testFakeId() {
+    Test.startTest();
+    Id result = SObjectUtil.getFakeId('Account');
+    Test.stopTest();
+    System.assertNotEquals(null, result);
+  }
 
 }

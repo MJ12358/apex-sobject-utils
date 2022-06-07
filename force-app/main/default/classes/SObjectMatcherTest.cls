@@ -1,29 +1,29 @@
 @IsTest
 public class SObjectMatcherTest {
 
+  private static Double revenue = 123456.789;
+  private static String phone = '(123) 456-7890';
+
 	@TestSetup
 	static void testSetup() {
 		List<Account> accounts = new List<Account>();
-		accounts.add(new AccountFactory()
-			.put(Account.Name, 'Test Number1')
-			.put(Account.Email__c, 'test1@test.com')
-			.put(Account.Phone, '(123) 456-7890')
-			.build()
-			.getRecord()
-		);
-		accounts.add(new AccountFactory()
-			.put(Account.Name, 'Test Number2')
-			.put(Account.Phone, '(123) 456-7890')
-			.build()
-			.getRecord()
-		);
-		accounts.add(new AccountFactory()
-			.put(Account.Name, 'Test Number3')
-			.put(Account.AnnualRevenue, 123456.789)
-			.put(Account.Phone, '(123) 456-7890')
-			.build()
-			.getRecord()
-		);
+
+    Account acc1 = new Account();
+    acc1.Name = 'Test Number1';
+    acc1.Phone = phone;
+    accounts.add(acc1);
+
+    Account acc2 = new Account();
+    acc2.Name = 'Test Number2';
+    acc2.Phone = phone;
+    accounts.add(acc2);
+
+    Account acc3 = new Account();
+    acc3.Name = 'Test Number3';
+    acc3.AnnualRevenue = revenue;
+    acc3.Phone = phone;
+    accounts.add(acc3);
+
 		insert accounts;
 	}
 
@@ -43,8 +43,7 @@ public class SObjectMatcherTest {
 	static void testError2() {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => 'Test Number1',
-			Account.Email__c => 'test1@test.com',
-			Account.Phone => '123-456-7890',
+			Account.Phone => phone,
 			Account.CreatedDate => Date.today()
 		};
 		Test.startTest();
@@ -61,17 +60,16 @@ public class SObjectMatcherTest {
 	static void testNumber1() {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => 'Test Number1',
-			Account.Email__c => 'test1@test.com',
-			Account.Phone => '123-456-7890',
+			Account.Phone => phone,
 			Account.CreatedDate => Date.today()
 		};
-		List<Account> accounts = [SELECT Name, Email__c, Phone, CreatedDate FROM Account];
+		List<Account> accounts = [SELECT Name, Phone, CreatedDate FROM Account];
 		Test.startTest();
 		SObjectMatcher matcher = new SObjectMatcher(Account.SObjectType, fieldMap).find(accounts);
 		Integer confidence = matcher.getConfidence();
 		SObject result = matcher.getRecord();
 		Test.stopTest();
-		System.assertEquals(3, confidence);
+		System.assertEquals(2, confidence);
 		System.assertNotEquals(null, result);
 		System.assertEquals(Account.SObjectType, result.getSObjectType());
 	}
@@ -81,7 +79,7 @@ public class SObjectMatcherTest {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => 'Test Number2',
 			Account.CreatedDate => '1897-07-07',
-			Account.Phone => '123-456-7890'
+			Account.Phone => phone
 		};
 		List<Account> accounts = [SELECT Name, CreatedDate, Phone FROM Account];
 		Test.startTest();
@@ -98,8 +96,8 @@ public class SObjectMatcherTest {
 	static void testNumber3() {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => 'Test Number3',
-			Account.AnnualRevenue => 123456.789,
-			Account.Phone => '123-456-7890'
+			Account.AnnualRevenue => revenue,
+			Account.Phone => phone
 		};
 		List<Account> accounts = [SELECT Name, AnnualRevenue, Phone FROM Account];
 		Test.startTest();
@@ -116,10 +114,9 @@ public class SObjectMatcherTest {
 	static void testNoResult() {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => 'Not Found',
-			Account.Email__c => 'tbd@tbd.com',
 			Account.Phone => '9876543210'
 		};
-		List<Account> accounts = [SELECT Name, Email__c, Phone FROM Account];
+		List<Account> accounts = [SELECT Name, Phone FROM Account];
 		Test.startTest();
 		SObjectMatcher matcher = new SObjectMatcher(Account.SObjectType, fieldMap).find(accounts);
 		Integer confidence = matcher.getConfidence();
@@ -133,15 +130,14 @@ public class SObjectMatcherTest {
 	static void testGenerateQuery() {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => 'Test Number1',
-			Account.Email__c => 'test1@test.com',
-			Account.Phone => '123-456-7890'
+			Account.Phone => phone
 		};
 		Test.startTest();
 		SObjectMatcher matcher = new SObjectMatcher(Account.SObjectType, fieldMap).find();
 		Integer confidence = matcher.getConfidence();
 		SObject result = matcher.getRecord();
 		Test.stopTest();
-		System.assertEquals(3, confidence);
+		System.assertEquals(2, confidence);
 		System.assertNotEquals(null, result);
 		System.assertEquals(Account.SObjectType, result.getSObjectType());
 	}
@@ -151,9 +147,8 @@ public class SObjectMatcherTest {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Id => [SELECT Id FROM Account LIMIT 1].Id,
 			Account.Name => 'Test Number3',
-			Account.AnnualRevenue => 123456.789,
-			Account.Phone => '123-456-7890',
-			Account.CreatedDate => Datetime.now()
+			Account.AnnualRevenue => revenue,
+			Account.Phone => phone
 		};
 		Test.startTest();
 		SObjectMatcher matcher = new SObjectMatcher(Account.SObjectType, fieldMap).find();
@@ -169,7 +164,6 @@ public class SObjectMatcherTest {
 	static void testGenerateQueryEmptyValue() {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => 'Test Number1',
-			Account.Email__c => '',
 			Account.Phone => null
 		};
 		Test.startTest();
@@ -186,7 +180,6 @@ public class SObjectMatcherTest {
 	static void testGenerateQueryAllEmptyValues() {
 		Map<Schema.SObjectField, Object> fieldMap = new Map<Schema.SObjectField, Object>{
 			Account.Name => '',
-			Account.Email__c => '',
 			Account.Phone => null
 		};
 		Test.startTest();

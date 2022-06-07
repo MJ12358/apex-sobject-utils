@@ -27,8 +27,11 @@
 
 public inherited sharing class SObjectUtil {
 
+  private static Integer fakeIdCount = 1;
+
 	// cache a map of sObjectType => sObjectFields
-	private static Map<Schema.SObjectType, Map<String, Schema.SObjectField>> fieldMap = new Map<Schema.SObjectType, Map<String, Schema.SObjectField>>();
+	private static Map<Schema.SObjectType, Map<String, Schema.SObjectField>> fieldMap = 
+    new Map<Schema.SObjectType, Map<String, Schema.SObjectField>>();
 
 /**
  *	Lazy load / cache the Schema.getGlobalDescribe()
@@ -71,13 +74,14 @@ public inherited sharing class SObjectUtil {
  *	@return Map<String, Schema.SObjectField>
  */
 	public static Map<String, Schema.SObjectField> getFieldMap(Schema.SObjectType sObjectType) {
-		if (sObjectType == null) {
-			return new Map<String, Schema.SObjectField>();
+		Map<String, Schema.SObjectField> result = new Map<String, Schema.SObjectField>();
+    if (sObjectType == null) {
+			return result;
 		}
 		if (fieldMap.get(sObjectType) != null) {
 			return fieldMap.get(sObjectType);
 		}
-		Map<String, Schema.SObjectField> result = sObjectType.getDescribe().fields.getMap();
+		result = sObjectType.getDescribe().fields.getMap();
 		fieldMap.put(sObjectType, result);
 		return result;
 	}
@@ -121,7 +125,7 @@ public inherited sharing class SObjectUtil {
 		if (String.isNotBlank(recordId)) {
 			return recordId.getSObjectType().getDescribe().getName();
 		}
-		return recordId;
+		return null;
 	}
 
 /**
@@ -197,9 +201,9 @@ public inherited sharing class SObjectUtil {
 	@AuraEnabled
 	public static String convertNameToLabel(String sObjectName) {
 		if (String.isNotBlank(sObjectName)) {
-			return convertNameToType(sObjectName).getDescribe().getLabel(); 
+			return convertNameToType(sObjectName)?.getDescribe().getLabel(); 
 		}
-		return sObjectName;
+		return null;
 	}
 
 	//* Convert name to type
@@ -432,213 +436,6 @@ public inherited sharing class SObjectUtil {
 		return getMostRecentlyViewedRecord(sObjectType.getDescribe().getName());
 	}
 
-	//* Create ContentVersion
-
-/**
- *	Create content version
- *	@param File
- */
-	// @AuraEnabled
-	// public static void createContentVersion(List<File> files, Id recordId) {
-	// 	try {
-	// 		SObjectUnitOfWork uow = new SObjectUnitOfWork(
-	// 			new List<Schema.SObjectType>{
-	// 				ContentVersion.SObjectType
-	// 			}
-	// 		);
-	// 		for (File file : files) {
-	// 			ContentVersion cv = file.toContentVersion();
-	// 			cv.FirstPublishLocationId = recordId;
-	// 			uow.registerNew(cv);
-	// 		}
-	// 		uow.commitWork();
-	// 	} catch (Exception e) {
-	// 		throw new AuraHandledException(e.getMessage());
-	// 	}
-	// }
-
-	//* Get field set fields
-
-/**
- *	Get Fieldset fields
- *	@param Schema.FieldSet
- *	@return List<String>
- */
-	public static List<String> getFieldSetFields(Schema.FieldSet fieldSet) {
-		List<String> result = new List<String>();
-		if (fieldSet != null) {
-			for (Schema.FieldSetMember fsm : fieldSet.getFields()) {
-				result.add(fsm.getFieldPath());
-			}
-		}
-		return result;
-	}
-
-/**
- *	Get Fieldset fields
- *	@param Schema.SObjectType
- *	@param String The field set name
- *	@return List<String>
- */
-	public static List<String> getFieldSetFields(Schema.SObjectType sObjectType, String fieldSetName) {
-		if (sObjectType != null) {
-			Schema.FieldSet fieldSet = sObjectType.getDescribe().fieldSets.getMap().get(fieldSetName);
-			return getFieldSetFields(fieldSet);
-		}
-		return new List<String>();
-	}
-
-/**
- *	Get Fieldset fields
- *	@param String The sObject name
- *	@param String The field set name
- *	@return List<String>
- */
-	@AuraEnabled
-	public static List<String> getFieldSetFields(String sObjectName, String fieldSetName) {
-		Schema.SObjectType sObjectType = convertNameToType(sObjectName);
-		return getFieldSetFields(sObjectType, fieldSetName);
-	}
-
-	//* Get field set fields described
-
-/**
- *	Get Fieldset fields described
- *	@param Schema.SObjectType
- *	@param Schema.FieldSet
- *	@return List<Schema.DescribeFieldResult>
- */
-	public static List<Schema.DescribeFieldResult> getFieldSetFieldsDesc(Schema.SObjectType sObjectType, Schema.FieldSet fieldSet) {
-		List<Schema.DescribeFieldResult> result = new List<Schema.DescribeFieldResult>();
-		if (fieldSet != null) {
-			Map<String, Schema.SObjectField> sObjMap = getFieldMap(sObjectType);
-			for (Schema.FieldSetMember fsm : fieldSet.getFields()) {
-				List<String> split = fsm.getFieldPath().split('\\.');
-				String fieldPath;
-				if (split.size() > 1) {
-					fieldPath = split[split.size() - 2].replace('__r', '__c');
-				} else {
-					fieldPath = fsm.getFieldPath();
-				}
-				if (sObjMap.get(fieldPath) != null) {
-					result.add(sObjMap.get(fieldPath).getDescribe());
-				}
-			}
-		}
-		return result;
-	}
-
-/**
- *	Get Fieldset fields described
- *	@param Schema.SObjectType
- *	@param String The field set name
- *	@return List<Schema.DescribeFieldResult>
- */
-	public static List<Schema.DescribeFieldResult> getFieldSetFieldsDesc(Schema.SObjectType sObjectType, String fieldSetName) {
-		if (sObjectType != null && String.isNotBlank(fieldSetName)) {
-			Schema.FieldSet fieldSet = sObjectType.getDescribe().fieldSets.getMap().get(fieldSetName);
-			return getFieldSetFieldsDesc(sObjectType, fieldSet);
-		}
-		return new List<Schema.DescribeFieldResult>();
-	}
-
-/**
- *	Get Fieldset fields described
- *	@param String The sObject name
- *	@param String The field set name
- *	@return String
- */
-	@AuraEnabled
-	public static String getFieldSetFieldsDesc(String sObjectName, String fieldSetName) {
-		Schema.SObjectType sObjectType = convertNameToType(sObjectName);
-		return System.JSON.serialize(getFieldSetFieldsDesc(sObjectType, fieldSetName));
-	}
-
-	//* Get picklist values
-
-/**
- *	Get picklist values aka: labels
- *	@param Schema.SObjectField
- *	@return List<String>
- */
-	public static List<String> getPicklistValues(Schema.SObjectField field) {
-		Set<String> result = getPicklistValueByLabel(field).keySet();
-		return new List<String>(result);
-	}
-
-/**
- *	Get map of picklist value by label
- *	@param Schema.SObjectField
- *	@return Map<String,String>
- */
-	public static Map<String, String> getPicklistValueByLabel(Schema.SObjectField field) {
-		Map<String, String> result = new Map<String, String>();
-		if (field != null) {
-			Schema.DescribeFieldResult fieldResult = field.getDescribe();
-			if (fieldResult.getType() == Schema.DisplayType.PICKLIST || fieldResult.getType() == Schema.DisplayType.MULTIPICKLIST) {
-				for (Schema.PicklistEntry ple : fieldResult.getPicklistValues()) {
-					if (ple.isActive()) {
-						result.put(ple.getLabel(), ple.getValue());
-					}
-				}
-			}
-		}
-		return result;
-	}
-
-/**
- *	Get picklist values aka: labels
- *	@param String The sObject name
- *	@param String The sObject field name
- *	@return List<String>
- */
-	@AuraEnabled
-	public static List<String> getPicklistValues(String sObjectName, String fieldName) {
-		return getPicklistValues(getAllFields(sObjectName).get(fieldName));
-	}
-
-/**
- *	Get country picklist values aka: labels
- *	@return List<String>
- */
-	// @AuraEnabled
-	// public static List<String> getCountryPicklistValues() {
-	// 	List<String> result = new List<String>();
-	// 	if (!isStateCountryPicklistEnabled()) {
-	// 		return result;
-	// 	}
-	// 	// TODO: how the hell to do this with scheme types
-	// 	// 		when the org does not have state/country picklists enabled?????????
-	// 	Schema.DescribeFieldResult fieldResult = Schema.User.CountryCode.getDescribe();
-	// 	// SObject user = User.getSObjectType();
-	// 	// Schema.SObjectField field = user.get('CountryCode');
-	// 	for (Schema.PicklistEntry ple : fieldResult.getPicklistValues()) {
-	// 		if (ple.isActive()) {
-	// 			result.add(ple.getLabel());
-	// 		}
-	// 	}
-	// 	return result;
-	// }
-
-/**
- *	Get state picklist values aka: labels
- *	@return List<String>
- */
-	// @AuraEnabled
-	// public static List<String> getStatePicklistValues() {
-	// 	List<String> result = new List<String>();
-	// 	if (!isStateCountryPicklistEnabled()) {
-	// 		return result;
-	// 	}
-	// 	Schema.DescribeFieldResult fieldResult = Schema.User.StateCode.getDescribe();
-	// 	for (Schema.PicklistEntry ple : fieldResult.getPicklistValues()) {
-	// 		if (ple.isActive()) {
-	// 			result.add(ple.getLabel());
-	// 		}
-	// 	}
-	// 	return result;
-	// }
-
 	//* Get reference to
 
 /**
@@ -798,189 +595,6 @@ public inherited sharing class SObjectUtil {
 		return getUpdateableFields(convertNameToType(sObjectName));
 	}
 
-	//* Get record types
-
-/**
- *	Get record types
- *	@param String sObjectName
- */
-	@AuraEnabled
-	public static Map<Id, String> getRecordTypes(String sObjectName) {
-		return getRecordTypes(convertNameToType(sObjectName));
-	}
-
-	public static Map<Id, String> getRecordTypes(Schema.SObjectType sObjectType) {
-		Map<Id, String> result = new Map<Id, String>();
-		if (sObjectType != null) {
-			for (Schema.RecordTypeInfo info : sObjectType.getDescribe().getRecordTypeInfos()) {
-				// active, available and not master
-				if (info.isActive() && info.isAvailable() && !info.isMaster()) {
-					result.put(info.getRecordTypeId(), info.getName());
-				}
-			}
-		}
-		return result;
-	}
-
-/**
- *	Get record type id
- *	@param Schema.DescribeSObjectResult The sObjectDescribe
- *	@param String The record type name
- *	@return Id The record type ID
- */
-	public static Id getRecordTypeId(Schema.DescribeSObjectResult sObjectDesc, String recTypeName) {
-		if (sObjectDesc != null && String.isNotBlank(recTypeName)) {
-			Map<String, Schema.RecordTypeInfo> recordTypeMap = sObjectDesc.getRecordTypeInfosByName();
-			if (recordTypeMap.get(recTypeName) != null) {
-				return recordTypeMap.get(recTypeName).getRecordTypeId();
-			}
-		}
-		return null;
-	}
-
-/**
- *	Get record type id
- *	@param Schema.SObjectType The sObjectType
- *	@param String The record type name
- *	@return Id The record type ID
- */
-	public static Id getRecordTypeId(Schema.SObjectType sObjectType, String recTypeName) {
-		if (sObjectType != null) {
-			return getRecordTypeId(sObjectType.getDescribe(), recTypeName);
-		}
-		return null;
-	}
-
-/**
- *	Get record type id
- *	@param SObject The sObject
- *	@param String The record type name
- *	@return Id The record type ID
- */
-	public static Id getRecordTypeId(SObject sObj, String recTypeName) {
-		if (sObj != null) {
-			return getRecordTypeId(sObj.getSObjectType(), recTypeName);
-		}
-		return null;
-	}
-
-/**
- *	Get record type id
- *	@param String The sObject name
- *	@param String The record type name
- *	@return Id The record type ID
- */
-	@AuraEnabled
-  public static Id getRecordTypeId(String sObjectName, String recTypeName) {
-		return getRecordTypeId(convertNameToType(sObjectName), recTypeName);
-	}
-
-/**
- *	Get record type label
- *	@param Schema.DescribeSObjectResult The sObjectDescribe
- *	@param Id The record type id
- *	@return String The record type label
- */
-	public static String getRecordTypeLabel(Schema.DescribeSObjectResult sObjectDesc, Id recTypeId) {
-		if (sObjectDesc != null && String.isNotBlank(recTypeId)) {
-			Map<Id, Schema.RecordTypeInfo> recordTypeMap = sObjectDesc.getRecordTypeInfosById();
-			if (recordTypeMap.get(recTypeId) != null) {
-				return recordTypeMap.get(recTypeId).getName();
-			}
-		}
-		return null;
-	}
-
-/**
-*	Get record type label
-*	@param Schema.SObjectType The sObjectType
-*	@param Id The record type id
-*	@return String The record type label
-*/
-	public static String getRecordTypeLabel(Schema.SObjectType sObjectType, Id recTypeId) {
-		if (sObjectType != null) {
-			return getRecordTypeLabel(sObjectType.getDescribe(), recTypeId);
-		}
-		return null;
-	}
-
-/**
-*	Get record type label
-*	@param SObject The sObject
-*	@param Id The record type id
-*	@return String The record type label
-*/
-	public static String getRecordTypeLabel(SObject sObj, Id recTypeId) {
-		if (sObj != null) {
-			return getRecordTypeLabel(sObj.getSObjectType(), recTypeId);
-		}
-		return null;
-	}
-
-/**
-*	Get record type label
-*	@param String The sObject name
-*	@param Id The record type id
-*	@return String The record type label
-*/
-	@AuraEnabled
-	public static String getRecordTypeLabel(String sObjectName, Id recTypeId) {
-		return getRecordTypeLabel(convertNameToType(sObjectName), recTypeId);
-	}
-	
-/**
- *	Get record type name
- *	@param Schema.DescribeSObjectResult The sObjectDescribe
- *	@param Id The record type id
- *	@return String The record type name
- */
-	public static String getRecordTypeName(Schema.DescribeSObjectResult sObjectDesc, Id recTypeId) {
-		if (sObjectDesc != null && String.isNotBlank(recTypeId)) {
-			Map<Id, Schema.RecordTypeInfo> recordTypeMap = sObjectDesc.getRecordTypeInfosById();
-			if (recordTypeMap.get(recTypeId) != null) {
-				return recordTypeMap.get(recTypeId).getDeveloperName();
-			}
-		}
-		return null;
-	}
-
-/**
- *	Get record type name
- *	@param Schema.SObjectType The sObjectType
- *	@param Id The record type id
- *	@return String The record type name
- */
-	public static String getRecordTypeName(Schema.SObjectType sObjectType, Id recTypeId) {
-		if (sObjectType != null) {
-			return getRecordTypeName(sObjectType.getDescribe(), recTypeId);
-		}
-		return null;
-	}
-
-/**
- *	Get record type name
- *	@param SObject The sObject
- *	@param Id The record type id
- *	@return String The record type name
- */
-	public static String getRecordTypeName(SObject sObj, Id recTypeId) {
-		if (sObj != null) {
-			return getRecordTypeName(sObj.getSObjectType(), recTypeId);
-		}
-		return null;
-	}
-
-/**
- *	Get record type name
- *	@param String The sObject name
- *	@param Id The record type id
- *	@return String The record type name
- */
-	@AuraEnabled
-	public static String getRecordTypeName(String sObjectName, Id recTypeId) {
-		return getRecordTypeName(convertNameToType(sObjectName), recTypeId);
-	}
-
 	//* Get relationship names
 
 /**
@@ -1070,331 +684,6 @@ public inherited sharing class SObjectUtil {
 		return sObj;
 	}
 
-	//* Copy address fields
-
-/**
- *	Copy address fields
- *	@param System.Address The address to copy from
- *	@param SObject The sObject to copy the address to
- */
-	public static void copyToAddress(System.Address addr, SObject obj) {
-		if (addr != null && obj != null) {
-			obj.put('City', addr.getCity());
-			obj.put('Country', addr.getCountry());
-			obj.put('CountryCode', addr.getCountryCode());
-			obj.put('PostalCode', addr.getPostalCode());
-			obj.put('State', addr.getState());
-			obj.put('StateCode', addr.getStateCode());
-			obj.put('Street', addr.getStreet());
-			obj.put('Latitude', addr.getLatitude());
-			obj.put('Longitude', addr.getLongitude());
-		}
-	}
-
-/**
- *	Copy address fields
- *	@param SObject The sObject to copy the address from
- *	@param SObject The sObject to copy the address to
- */
-	public static void copyToAddress(SObject fromObj, SObject toObj) {
-		if (fromObj != null && toObj != null) {
-			toObj.put('City', fromObj.get('City'));
-			toObj.put('Country', fromObj.get('Country'));
-			toObj.put('CountryCode', fromObj.get('CountryCode'));
-			toObj.put('PostalCode', fromObj.get('PostalCode'));
-			toObj.put('State', fromObj.get('State'));
-			toObj.put('StateCode', fromObj.get('StateCode'));
-			toObj.put('Street', fromObj.get('Street'));
-			toObj.put('Latitude', fromObj.get('Latitude'));
-			toObj.put('Longitude', fromObj.get('Longitude'));
-		}
-	}
-
-/**
- *	Copy billing address fields
- *	@param System.Address The address to copy from
- *	@param SObject The sObject to copy the address to
- */
-	public static void copyToBillingAddress(System.Address addr, SObject obj) {
-		if (addr != null && obj != null) {
-			obj.put('BillingCity', addr.getCity());
-			obj.put('BillingCountry', addr.getCountry());
-			obj.put('BillingCountryCode', addr.getCountryCode());
-			obj.put('BillingPostalCode', addr.getPostalCode());
-			obj.put('BillingState', addr.getState());
-			obj.put('BillingStateCode', addr.getStateCode());
-			obj.put('BillingStreet', addr.getStreet());
-			obj.put('BillingLatitude', addr.getLatitude());
-			obj.put('BillingLongitude', addr.getLongitude());
-		}
-	}
-
-/**
- *	Copy shipping address fields
- *	@param System.Address The address to copy from
- *	@param SObject The sObject to copy the address to
- */
-	public static void copyToShippingAddress(System.Address addr, SObject obj) {
-		if (addr != null && obj != null) {
-			obj.put('ShippingCity', addr.getCity());
-			obj.put('ShippingCountry', addr.getCountry());
-			obj.put('ShippingCountryCode', addr.getCountryCode());
-			obj.put('ShippingPostalCode', addr.getPostalCode());
-			obj.put('ShippingState', addr.getState());
-			obj.put('ShippingStateCode', addr.getStateCode());
-			obj.put('ShippingStreet', addr.getStreet());
-			obj.put('ShippingLatitude', addr.getLatitude());
-			obj.put('ShippingLongitude', addr.getLongitude());
-		}
-	}
-
-/**
- *	Is an address empty (skip checking country it defaults to US)
- *	@param System.Address
- *	@return Boolean
- */
-	public static Boolean isAddressEmpty(System.Address addr) {
-		return String.isBlank(addr?.getCity())
-			&& String.isBlank(addr?.getPostalCode())
-			&& String.isBlank(addr?.getState())
-			&& String.isBlank(addr?.getStateCode())
-			&& String.isBlank(addr?.getStreet());
-	}
-
-/**
- *	Is an address empty (skip checking country it defaults to US)
- *	@param SObject
- *	@return Boolean
- */
-	public static Boolean isAddressEmpty(SObject obj) {
-		return obj?.get('City') == null
-			&& obj?.get('PostalCode') == null
-			&& obj?.get('State') == null
-			&& obj?.get('StateCode') == null
-			&& obj?.get('Street') == null;
-	}
-
-/**
- *	Is billing address empty (skip checking country it defaults to US)
- *	@param SObject
- *	@return Boolean
- */
-	public static Boolean isBillingAddressEmpty(SObject obj) {
-		return obj?.get('BillingCity') == null
-			&& obj?.get('BillingPostalCode') == null
-			&& obj?.get('BillingState') == null
-			&& obj?.get('BillingStateCode') == null
-			&& obj?.get('BillingStreet') == null;
-	}
-
-/**
- *	Is shipping address empty (skip checking country it defaults to US)
- *	@param SObject
- *	@return Boolean
- */
-	public static Boolean isShippingAddressEmpty(SObject obj) {
-		return obj?.get('ShippingCity') == null
-			&& obj?.get('ShippingPostalCode') == null
-			&& obj?.get('ShippingState') == null
-			&& obj?.get('ShippingStateCode') == null
-			&& obj?.get('ShippingStreet') == null;
-	}
-
-/**
- *	Did the address change
- *	@param SObject
- *	@param SObject
- *	@return Boolean
- */
-	public static Boolean hasAddressChanged(SObject newObj, SObject oldObj) {
-		if (newObj == null || oldObj == null) {
-			return false;
-		}
-		return newObj.get('City') != oldObj.get('City')
-			|| newObj.get('State') != oldObj.get('State')
-			|| newObj.get('StateCode') != oldObj.get('StateCode')
-			|| newObj.get('Street') != oldObj.get('Street')
-			|| newObj.get('PostalCode') != oldObj.get('PostalCode')
-			|| newObj.get('Country') != oldObj.get('Country')
-			|| newObj.get('CountryCode') != oldObj.get('CountryCode')
-			|| newObj.get('Latitude') != oldObj.get('Latitude')
-			|| newObj.get('Longitude') != oldObj.get('Longitude');
-	}
-
-/**
- *	Did the address change
- *	@param System.Address
- *	@param System.Address
- *	@return Boolean
- */
-	public static Boolean hasAddressChanged(System.Address newAddr, System.Address oldAddr) {
-		if (newAddr == null || oldAddr == null) {
-			return false;
-		}
-		return newAddr.getCity() != oldAddr.getCity()
-			|| newAddr.getState() != oldAddr.getState()
-			|| newAddr.getStateCode() != oldAddr.getStateCode()
-			|| newAddr.getStreet() != oldAddr.getStreet()
-			|| newAddr.getPostalCode() != oldAddr.getPostalCode()
-			|| newAddr.getCountry() != oldAddr.getCountry()
-			|| newAddr.getCountryCode() != oldAddr.getCountryCode()
-			|| newAddr.getLatitude() != oldAddr.getLatitude()
-			|| newAddr.getLongitude() != oldAddr.getLongitude();
-	}
-
-	//* Lightning icon names
-
-/**
- *	Get the sObject lightning icon name
- *	@param String The sObject name
- *	@return String The icon name formatted for slds
- */
-	@AuraEnabled
-	public static String getLightningIconName(String sObjectName) {
-		if (String.isBlank(sObjectName)) {
-			return 'standard:default';
-		}
-		String result = '';
-		switch on sObjectName.toLowerCase() {
-			when 'contractlineitem' {
-				result = 'contract_line_item';
-			}
-			when 'order' {
-				result = 'orders';
-			}
-			when 'orderitem' {
-				result = 'order_item';
-			}
-			when 'pricebook2' {
-				result = 'pricebook';
-			}
-			when 'productconsumed' {
-				result = 'product_consumed';
-			}
-			when 'productitemtransaction' {
-				result = 'product_item_transaction';
-			}
-			when 'productitem' {
-				result = 'product_item';
-			}
-			when 'productrequestlineitem' {
-				result = 'product_request_line_item';
-			}
-			when 'productrequest' {
-				result = 'product_request';
-			}
-			when 'productrequired' {
-				result = 'product_required';
-			}
-			when 'producttransfer' {
-				result = 'product_transfer';
-			}
-			when 'product2' {
-				result = 'product';
-			}
-			when 'quote' {
-				result = 'quotes';
-			}
-			when 'resourceabsence' {
-				result = 'resource_absence';
-			}
-			when 'resourcecapacity' {
-				result = 'resource_capacity';
-			}
-			when 'resourcepreference' {
-				result = 'resource_preference';
-			}
-			when 'returnorderlineitem' {
-				result = 'return_order_line_item';
-			}
-			when 'returnorder' {
-				result = 'return_order';
-			}
-			when 'serviceappointment' {
-				result = 'service_appointment';
-			}
-			when 'servicecontract' {
-				result = 'service_contract';
-			}
-			when 'servicecrewmember' {
-				result = 'service_crew_member';
-			}
-			when 'servicecrew' {
-				result = 'service_crew';
-			}
-			when 'servicereport' {
-				result = 'service_report';
-			}
-			when 'serviceresource' {
-				result = 'service_resource';
-			}
-			when 'serviceterritorylocation' {
-				result = 'service_territory_location';
-			}
-			when 'serviceterritorymember' {
-				result = 'service_territory_member';
-			}
-			when 'serviceterritory' {
-				result = 'service_territory';
-			}
-			when 'skill' {
-				result = 'resource_skill';
-			}
-			when 'timesheetentry' {
-				result = 'timesheet_entry';
-			}
-			when 'workcapacitylimit' {
-				result = 'work_capacity_limit';
-			}
-			when 'workcapacityusage' {
-				result = 'work_capacity_usage';
-			}
-			when 'workorderlineitem' {
-				result = 'work_order_item';
-			}
-			when 'workorder' {
-				result = 'work_order';
-			}
-			when 'workqueue' {
-				result = 'work_queue';
-			}
-			when 'worktypegroup' {
-				result = 'work_type_group';
-			}
-			when 'worktype' {
-				result = 'work_type';
-			}
-			when else {
-				result = sObjectName.toLowerCase();
-			}
-		}
-		return 'standard:' + result;
-	}
-
-/**
- *	Get the sObject lightning icon name
- *	@param Schema.SObjectType The sObject type
- *	@return String
- */
-	public static String getLightningIconName(Schema.SObjectType sObjectType) {
-		if (sObjectType != null) {
-			return getLightningIconName(sObjectType.getDescribe().getName());
-		}
-		return null;
-	}
-
-/**
- *	Get the sObject lightning icon name
- *	@param SObject The sObject
- *	@return String
- */
-	public static String getLightningIconName(SObject sObj) {
-		if (sObj != null) {
-			return getLightningIconName(sObj.getSObjectType());
-		}
-		return null;
-	}
-
 	//* Validation
 
 /**
@@ -1428,31 +717,35 @@ public inherited sharing class SObjectUtil {
 	}
 
 	public static Boolean isValid(Schema.SObjectType sObjectType, String fieldName) {
-		if (sObjectType != null) {
-			List<String> split = fieldName.split('\\.');
-			if (split.size() > 1) {
-				Boolean isValid = false;
-				Integer index = 0;
-				Schema.SObjectType parentType = sObjectType; // for first iteration
-				while (index < split.size() - 1) {
-					for (Schema.SObjectField field : getFieldMap(parentType).values()) {
-						Schema.DescribeFieldResult dfr = field.getDescribe();
-						if (dfr.getType() == Schema.DisplayType.REFERENCE && dfr.getRelationshipName() == split[index]) {
-							isValid = true;
-							parentType = dfr.getReferenceTo().get(0); // does not account for polymorphic lookups
-							break;
-						}
-					}
-					if (!isValid) {
-						return false;
-					}
-					index++;
-				}
-				return getFieldMap(parentType).containsKey(split[index]);
-			}
-			return getFieldMap(sObjectType).containsKey(fieldName);
-		}
-		return false;
+    if (sObjectType == null || String.isBlank(fieldName)) {
+      return false;
+    }
+    fieldName = fieldName.toLowerCase();
+    List<String> split = fieldName.split('\\.');
+    if (split.size() <= 1) {
+      return getFieldMap(sObjectType).containsKey(fieldName);
+    }
+
+    Boolean isValid = false;
+    Integer index = 0;
+    Schema.SObjectType parentType = sObjectType; // for first iteration
+    
+    while (index < split.size() - 1) {
+      for (Schema.SObjectField field : getFieldMap(parentType).values()) {
+        Schema.DescribeFieldResult dfr = field.getDescribe();
+        if (dfr.getType() == Schema.DisplayType.REFERENCE && dfr.getRelationshipName() == split[index]) {
+          isValid = true;
+          parentType = dfr.getReferenceTo().get(0); // does not account for polymorphic lookups
+          break;
+        }
+      }
+      if (!isValid) {
+        return false;
+      }
+      index++;
+    }
+    
+    return getFieldMap(parentType).containsKey(split[index]);
 	}
 
 	@AuraEnabled
@@ -1473,11 +766,23 @@ public inherited sharing class SObjectUtil {
 	}
 
 /**
- *	Check if state/country picklists are enabled
- *	@return Boolean
+ *  Generate a fake sObject Id
+ *  @param Schema.SObjectType
+ *  @return Id
  */
-	public static Boolean isStateCountryPicklistEnabled() {
-		return getFieldMap(Account.SObjectType).containsKey('BillingCountryCode');
-	}
+  public static Id getFakeId(Schema.SObjectType sObjectType) {
+    String keyPrefix = sObjectType.getDescribe().getKeyPrefix();
+    String result = String.valueOf(fakeIdCount++);
+    return keyPrefix + '0'.repeat(12 - result.length()) + result;
+  }
 
+/**
+ *  Generate a fake sObject Id
+ *  @param String The sObject name
+ *  @return Id
+ */
+  @AuraEnabled
+  public static Id getFakeId(String sObjectName) {
+    return getFakeId(convertNameToType(sObjectName));
+  }
 }

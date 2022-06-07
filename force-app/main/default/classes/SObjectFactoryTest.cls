@@ -18,31 +18,37 @@ private class SObjectFactoryTest {
 	@IsTest
 	static void buildRecords() {
 		Test.startTest();
-		List<Account> testAccounts = new SObjectFactoryMock(count).build().getRecords();
+    SObjectFactory factory = new SObjectFactoryMock(count);
+    factory.build();
+		List<Contact> records = (List<Contact>)factory.getRecords();
 		Test.stopTest();
-		System.assertEquals(count, testAccounts.size(),
+		System.assertEquals(count, records.size(),
 			'The correct number of records should have been built');
-		for (Account testAccount : testAccounts) {
-			System.assertNotEquals(null, testAccount, 'Null should never be returned');
+		for (Contact cont : records) {
+			System.assertNotEquals(null, cont, 'Null should never be returned');
 		}
 	}
 
 	@IsTest
 	static void buildAndInsertRecords() {
 		Test.startTest();
-		List<Account> testAccounts = new SObjectFactoryMock(count).buildAndInsert().getRecords();
+    SObjectFactory factory = new SObjectFactoryMock(count);
+    factory.buildAndInsert();
+		List<Contact> records = (List<Contact>)factory.getRecords();
 		Test.stopTest();
-		System.assertEquals(count, testAccounts.size(),
+		System.assertEquals(count, records.size(),
 			'The correct number of records should have been built');
-		for (Account testAccount : testAccounts) {
-			System.assertNotEquals(null, testAccount.Id, 'All of the accounts should have been inserted');
+		for (Contact acc : records) {
+			System.assertNotEquals(null, acc.Id, 'All of the accounts should have been inserted');
 		}
 	}
 
 	@IsTest
 	static void buildRecord() {
 		Test.startTest();
-		Account record = new SObjectFactoryMock().build().getRecord();
+    SObjectFactoryMock factory = new SObjectFactoryMock(count);
+    factory.build();
+		Contact record = (Contact)factory.getRecord();
 		Test.stopTest();
 		System.assertNotEquals(null, record, 'Null should never be returned');
 	}
@@ -50,7 +56,9 @@ private class SObjectFactoryTest {
 	@IsTest
 	static void buildAndInsertRecord() {
 		Test.startTest();
-		Account record = new SObjectFactoryMock().buildAndInsert().getRecord();
+    SObjectFactoryMock factory = new SObjectFactoryMock(count);
+    factory.buildAndInsert();
+		Contact record = (Contact)factory.getRecord();
 		Test.stopTest();
 		System.assertNotEquals(null, record, 'Null should never be returned');
 		System.assertNotEquals(null, record.Id, 'The record should have been inserted');
@@ -59,24 +67,29 @@ private class SObjectFactoryTest {
 	@IsTest
 	static void testPutField() {
 		Test.startTest();
-		Account record = new SObjectFactoryMock().put(Account.Name, 'Test Account').buildAndInsert().getRecord();
+    SObjectFactoryMock factory = new SObjectFactoryMock(count);
+    factory.put(Contact.LastName, 'Test Contact');
+    factory.buildAndInsert();
+		Contact record = (Contact)factory.getRecord();
 		Test.stopTest();
-		System.assertEquals('Test Account', record.Name);
+		System.assertEquals('Test Contact', record.LastName);
 	}
 
 	@IsTest
 	static void testGenericSObject() {
 		Test.startTest();
-		SObjectFactoryMock factory = new SObjectFactoryMock();
-		Account record = factory.put(Account.ParentId, factory.provideSObject(Account.SObjectType)).buildAndInsert().getRecord();
+    SObjectFactoryMock factory = new SObjectFactoryMock(count);
+    factory.put(Contact.AccountId, Account.SObjectType);
+    factory.buildAndInsert();
+		Contact record = (Contact)factory.getRecord();
 		Test.stopTest();
-		System.assertNotEquals(null, record.ParentId);
+		System.assertNotEquals(null, record.AccountId);
 	}
 
 	@IsTest
 	static void testProfiles() {
-		SObjectFactoryMock factory = new SObjectFactoryMock();
 		Test.startTest();
+    SObjectFactoryMock factory = new SObjectFactoryMock();
 		Id adminId = factory.getAdminProfile();
 		Id standardId = factory.getStandardProfile();
 		Id restrictedId = factory.getRestrictedProfile();
@@ -90,7 +103,7 @@ private class SObjectFactoryTest {
 	static void testFailure() {
 		Test.startTest();
 		SObjectFactoryMock factory = new SObjectFactoryMock();
-		factory.put(Account.Name, 'Test Account');
+		factory.put(Contact.LastName, '');
 		try {
 			factory.buildAndInsert();
 			System.assert(false, 'Expected an exception');
@@ -100,24 +113,35 @@ private class SObjectFactoryTest {
 		Test.stopTest();
 	}
 
+  @IsTest
+  static void testMergeFields() {
+    Test.startTest();
+    SObjectFactoryMock factory = new SObjectFactoryMock();
+    factory.put(Contact.LastName, 'Test{!index}');
+    factory.put(Contact.Description, '{!rand}');
+    factory.build();
+    Contact record = (Contact)factory.getRecord();
+    Test.stopTest();
+    System.assertEquals('Test0', record.LastName);
+    System.assert(String.isNotBlank(record.Description));
+  }
+
 	//* SObject factory mock
 
 	private class SObjectFactoryMock extends SObjectFactory {
 
 		public Schema.SObjectType getSObjectType() {
-			return Account.SObjectType;
+			return Contact.SObjectType;
 		}
 
 		public override Map<Schema.SObjectField, Object> getDefaultFieldToValue() {
 			return new Map<Schema.SObjectField, Object>{
-				Account.AnnualRevenue => SObjectFactory.DEFAULT_VALUE,
-				Account.BillingLatitude => SObjectFactory.DEFAULT_VALUE,
-				Account.BillingLongitude => SObjectFactory.DEFAULT_VALUE,
-				Account.Description => SObjectFactory.DEFAULT_VALUE, 
-				Account.Industry => SObjectFactory.DEFAULT_VALUE,
-				Account.NumberOfEmployees => SObjectFactory.DEFAULT_VALUE,
-				Account.Phone => SObjectFactory.DEFAULT_VALUE,
-				Account.Website => SObjectFactory.DEFAULT_VALUE
+				Contact.Birthdate => SObjectFactory.DEFAULT_VALUE,
+        Contact.DoNotCall => SObjectFactory.DEFAULT_VALUE,
+        Contact.Email =>  SObjectFactory.DEFAULT_VALUE,
+        Contact.LeadSource => SObjectFactory.DEFAULT_VALUE,
+        Contact.MobilePhone => SObjectFactory.DEFAULT_VALUE,
+        Contact.Title => SObjectFactory.DEFAULT_VALUE
 			};
 		}
 
@@ -127,29 +151,6 @@ private class SObjectFactoryTest {
 
 		public SObjectFactoryMock(Integer count) {
 			super(count);
-		}
-
-		public SObjectFactoryMock put(Schema.SObjectField field, Object value) {
-			putField(field, value);
-			return this;
-		}
-
-		public SObjectFactoryMock build() {
-			buildRecords();
-			return this;
-		}
-
-		public SObjectFactoryMock buildAndInsert() {
-			buildAndInsertRecords();
-			return this;
-		}
-
-		public Account getRecord() {
-			return (Account)getSObjectRecord();
-		}
-
-		public List<Account> getRecords() {
-			return (List<Account>)getSObjectRecords();
 		}
 
 	}

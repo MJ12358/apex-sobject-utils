@@ -2,9 +2,16 @@
 public class DuplicateFinderTest {
 
 	private static List<Account> getAccounts(Integer count) {
-		Account acc = new Account();
-		acc.Name = 'Test User';
-		return new List<Account>{ acc };
+    List<Account> results = new List<Account>();
+    for (Integer i = 0; i < count; i++) {
+      Account acc = new Account();
+      acc.Name = 'Test Account';
+      acc.BillingStreet = '123 Right Here';
+      acc.BillingCity = 'City';
+      acc.BillingState = 'NY';
+      results.add(acc);
+    }
+		return results;
 	}
 
 	private static Account getAccount() {
@@ -15,9 +22,12 @@ public class DuplicateFinderTest {
 	static void testDuplicate() {
 		insert getAccounts(3);
 		Test.startTest();
-		SObject result = new DuplicateFinder().find(getAccount()).getRecord();
+		DuplicateFinder finder = new DuplicateFinder().find(getAccount());
+    SObject result = finder.getRecord();
+    List<SObject> results = finder.getRecords();
 		Test.stopTest();
 		System.assertNotEquals(null, result);
+    System.assertEquals(3, results.size());
 	}
 
 	@IsTest
@@ -40,9 +50,8 @@ public class DuplicateFinderTest {
 
 	@IsTest
 	static void testNoDuplicateRuleForSObject() {
-		// Opportunity opp = new OpportunityFactory().build().getRecord();
 		Opportunity opp = new Opportunity();
-		opp.AccountId = 'test';
+		opp.AccountId = SObjectUtil.getFakeId(Opportunity.SObjectType);
 		Test.startTest();
 		try {
 			new DuplicateFinder().find(opp);

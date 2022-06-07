@@ -59,19 +59,93 @@ public inherited sharing abstract class SObjectFactory {
 		this.records = new List<SObject>{ sObj };
 	}
 
-	public void putField(Schema.SObjectField field, Object value) {
+	public void put(Schema.SObjectField field, Object value) {
 		this.fieldToValue.put(field, value);
 	}
 
-	public void putField(Schema.SObjectField field, SObject sObj) {
+	public void put(Schema.SObjectField field, SObject sObj) {
 		this.fieldToValue.put(field, sObj.Id);
 	}
 
-	public void putField(Schema.SObjectField field, Schema.SObjectType sObjectType) {
+	public void put(Schema.SObjectField field, Schema.SObjectType sObjectType) {
 		this.fieldToValue.put(field, provideSObject(sObjectType));
 	}
 
-	private void defineRequiredFields() {
+	public void build() {
+		defineRequiredFields();
+		while (this.records.size() < this.count) {
+			SObject record = getSObjectType().newSObject();
+			for (Schema.SObjectField field : this.fieldToValue.keySet()) {
+				if (this.fieldToValue.get(field) instanceof AutoFieldValue) {
+					Schema.DescribeFieldResult fieldDesc = field.getDescribe();
+          Object defaultValue = fieldDesc.getDefaultValue();
+					if (defaultValue == null || defaultValue == false) {
+						record.put(field, getDefaultValue(fieldDesc));
+					} else {
+						record.put(field, defaultValue);
+					}
+				} else {
+					record.put(field, getValue(this.fieldToValue.get(field)));
+				}
+			}
+			this.recordIndex++;
+			this.records.add(record);
+		}
+	}
+
+	public void buildAndInsert() {
+		build();
+		List<Database.SaveResult> saveResults = Database.insert(this.records, false);
+		List<String> listErrors = new List<String>();
+		Integer i = 0;
+		for (Database.SaveResult saveResult : saveResults) {
+      if (saveResult.isSuccess()) {
+        continue;
+      }
+      for (Database.Error error : saveResult.getErrors()) {
+        System.debug(error);
+        Set<String> fieldNames = new Set<String>{'Name', 'RecordTypeId'};
+        fieldNames.addAll(error.getFields());
+        List<String> listFieldValues = new List<String>();
+        for (String fieldName : fieldNames) {
+          Object fieldValue;
+          try {
+            fieldValue = this.records.get(i++).get(fieldName);
+          } catch (Exception e) {
+            // fail silently
+          }
+          if (fieldValue != null) {
+            listFieldValues.add(fieldName + '=' + fieldValue);
+          }
+        }
+        listErrors.add(String.format('{0} : {1} [{2}]',
+          new List<String>{
+            String.valueOf(error.getStatusCode()),
+            error.getMessage(),
+            String.join(listFieldValues, ', ')
+          }
+        ));
+      }
+			if (!listErrors.isEmpty()) {
+				throw new System.DmlException(String.join(listErrors, '\n') + ' ' + getSObjectType());
+			}
+		}
+	}
+
+	public virtual SObject getRecord() {
+		return getRecords().get(0);
+	}
+
+	public virtual List<SObject> getRecords() {
+		if (this.records == null || this.records.isEmpty()) {
+			throw new SObjectFactoryException('You must call build before getting records');
+		}
+		return this.records;
+	}
+
+	//* Utility methods
+
+  protected void defineRequiredFields() {
 		Schema.DescribeSObjectResult objDesc = getSObjectType().getDescribe();
 		Map<String, Schema.SObjectField> fields = objDesc.fields.getMap();
 		System.debug('SOBJECT TYPE: ' + getSObjectType());
@@ -91,7 +165,7 @@ public inherited sharing abstract class SObjectFactory {
 		}
 	}
 
-	private Id getRecordTypeId(Schema.DescribeSObjectResult objDesc) {
+	protected Id getRecordTypeId(Schema.DescribeSObjectResult objDesc) {
 		Id result;
 		for (Schema.RecordTypeInfo recTypeDesc : objDesc.getRecordTypeInfos()) {
 			if (recTypeDesc.isDefaultRecordTypeMapping()) {
@@ -101,81 +175,6 @@ public inherited sharing abstract class SObjectFactory {
 		}
 		return result;
 	}
-
-	public void buildRecords() {
-		defineRequiredFields();
-		while (this.records.size() < this.count) {
-			SObject record = getSObjectType().newSObject();
-			for (Schema.SObjectField field : this.fieldToValue.keySet()) {
-				if (this.fieldToValue.get(field) instanceof AutoFieldValue) {
-					Schema.DescribeFieldResult fieldDesc = field.getDescribe();
-					if (fieldDesc.getDefaultValue() == null) {
-						record.put(field, getDefaultValue(fieldDesc));
-					} else {
-						record.put(field, fieldDesc.getDefaultValue());
-					}
-				} else {
-					record.put(field, getValue(this.fieldToValue.get(field)));
-				}
-			}
-			this.recordIndex++;
-			this.records.add(record);
-		}
-	}
-
-	public void buildAndInsertRecords() {
-		buildRecords();
-		List<Database.SaveResult> saveResults = Database.insert(this.records, false);
-		List<String> listErrors = new List<String>();
-		Integer i = 0;
-		for (Database.SaveResult saveResult : saveResults) {
-			if (!saveResult.isSuccess()) {
-				for (Database.Error error : saveResult.getErrors()) {
-					System.debug(error);
-					Set<String> fieldNames = new Set<String>{'Name', 'RecordTypeId'};
-					fieldNames.addAll(error.getFields());
-					List<String> listFieldValues = new List<String>();
-					for (String fieldName : fieldNames) {
-						Object fieldValue;
-						try {
-							fieldValue = this.records.get(i++).get(fieldName);
-						} catch (Exception e) {
-							// fail silently
-						}
-						if (fieldValue != null) {
-							listFieldValues.add(fieldName + '=' + fieldValue);
-						}
-					}
-					listErrors.add(String.format('{0} : {1} [{2}]',
-						new List<String>{
-							String.valueOf(error.getStatusCode()),
-							error.getMessage(),
-							String.join(listFieldValues, ', ')
-						}
-					));
-				}
-			}
-			if (!listErrors.isEmpty()) {
-				throw new System.DmlException(String.join(listErrors, '\n') + ' ' + getSObjectType());
-			}
-		}
-	}
-
-	protected SObject getSObjectRecord() {
-		if (this.records == null || this.records.isEmpty()) {
-			throw new SObjectFactoryException('You must call build before getting a record');
-		}
-		return this.records.get(0);
-	}
-
-	protected List<SObject> getSObjectRecords() {
-		if (this.records == null || this.records.isEmpty()) {
-			throw new SObjectFactoryException('You must call build before getting records');
-		}
-		return this.records;
-	}
-
-	//* Utility methods
 
 	protected virtual Boolean isRequiredField(Schema.DescribeFieldResult fieldDesc) {
 		return
@@ -206,56 +205,57 @@ public inherited sharing abstract class SObjectFactory {
 	//* Default value methods
 
 	private Object getDefaultValue(Schema.DescribeFieldResult fieldDesc) {
-		if (fieldDesc != null) {
-			switch on (fieldDesc.getType()) {
-				when Anytype, String, TextArea {
-					return getTextDefaultValue(fieldDesc);
-				}
-				when Base64 {
-					return getBase64DefaultValue(fieldDesc);
-				}
-				when Boolean {
-					return getBooleanDefaultValue(fieldDesc);
-				}
-				when Combobox, MultiPicklist, Picklist {
-					return getPicklistDefaultValue(fieldDesc);
-				}
-				when Currency, Double, Long, Percent {
-					return getNumberDefaultValue(fieldDesc);
-				}
-				when Date {
-					return getDateDefaultValue(fieldDesc);
-				}
-				when Datetime {
-					return getDatetimeDefaultValue(fieldDesc);
-				}
-				when Email {
-					return getEmailDefaultValue(fieldDesc);
-				}
-				when Integer {
-					return getIntegerDefaultValue(fieldDesc);
-				}
-				when Location {
-					return getLocationDefaultValue(fieldDesc);
-				}
-				when Phone {
-					return getPhoneDefaultValue(fieldDesc);
-				}
-				when Reference {
-					
-				}
-				when Time {
-					return getTimeDefaultValue(fieldDesc);
-				}
-				when URL {
-					return getURLDefaultValue(fieldDesc);
-				}
-				when else {
-					throw new SObjectFactoryException('Unexpected field type found: ' + fieldDesc.getType());
-				}
-			}
-		}
-		return null;
+		if (fieldDesc == null) {
+      return null;
+    }
+    switch on (fieldDesc.getType()) {
+      when Anytype, String, TextArea {
+        return getTextDefaultValue(fieldDesc);
+      }
+      when Base64 {
+        return getBase64DefaultValue(fieldDesc);
+      }
+      when Boolean {
+        return getBooleanDefaultValue(fieldDesc);
+      }
+      when Combobox, MultiPicklist, Picklist {
+        return getPicklistDefaultValue(fieldDesc);
+      }
+      when Currency, Double, Long, Percent {
+        return getNumberDefaultValue(fieldDesc);
+      }
+      when Date {
+        return getDateDefaultValue(fieldDesc);
+      }
+      when Datetime {
+        return getDatetimeDefaultValue(fieldDesc);
+      }
+      when Email {
+        return getEmailDefaultValue(fieldDesc);
+      }
+      when Integer {
+        return getIntegerDefaultValue(fieldDesc);
+      }
+      when Location {
+        return getLocationDefaultValue(fieldDesc);
+      }
+      when Phone {
+        return getPhoneDefaultValue(fieldDesc);
+      }
+      when Reference {
+        System.debug(fieldDesc);
+        return null; // TODO
+      }
+      when Time {
+        return getTimeDefaultValue(fieldDesc);
+      }
+      when URL {
+        return getURLDefaultValue(fieldDesc);
+      }
+      when else {
+        throw new SObjectFactoryException('Unexpected field type found: ' + fieldDesc.getType());
+      }
+    }
 	}
 	
 	protected virtual Blob getBase64DefaultValue(Schema.DescribeFieldResult fieldDesc) {
@@ -334,7 +334,10 @@ public inherited sharing abstract class SObjectFactory {
 	//* Generic sObject provider
 
 	public Id provideSObject(Schema.SObjectType sObjectType) {
-		return new Generic(sObjectType).buildAndInsert().getRecord().Id;
+    Generic factory = new Generic(sObjectType);
+    factory.buildAndInsert();
+    SObject sObj = factory.getRecord();
+		return sObj.Id;
 	}
 
 	//* Generic sObject factory
@@ -354,24 +357,6 @@ public inherited sharing abstract class SObjectFactory {
 		public Generic(Schema.SObjectType sObjectType, Integer count) {
 			super(count);
 			this.sObjectType = sObjectType;
-		}
-
-		public Generic build() {
-			buildRecords();
-			return this;
-		}
-
-		public Generic buildAndInsert() {
-			buildAndInsertRecords();
-			return this;
-		}
-
-		public SObject getRecord() {
-			return getSObjectRecord();
-		}
-
-		public List<SObject> getRecords() {
-			return getSObjectRecords();
 		}
 
 	}
