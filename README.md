@@ -3,15 +3,20 @@ Utilities to make working with [SObjects](https://developer.salesforce.com/docs/
 
 This is a WIP.
 
+<a href="https://githubsfdeploy.herokuapp.com/app/githubdeploy/MJ12358/apex-sobject-utils?ref=main">
+  <img alt="Deploy to Salesforce"
+       src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
+</a>
+
 ## Requirements
 
 - This package requires my [apex-core-utils](https://github.com/MJ12358/apex-core-utils).
-	Mainly the `StringBuilder` and `DateUtil`.
+	The `StringBuilder` and `DateUtil`.
 
 ## This package's highlights include the following:
 
 -	### CrudException
-	Generates a templated error message when a [CRUD](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurrs.
+	Generates a templated error message when a [CRUD](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
 
 - ### DatabaseException
 	An abstract class which is extended by both `CrudException` and `FlsException`, just to make catching easier.
@@ -20,7 +25,7 @@ This is a WIP.
 	Used to easily find duplicates within the org based on the org's defined duplicate rules.
 
 -	###	FlsException
-	Generates a templated error message when a [FLS](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurrs.
+	Generates a templated error message when a [FLS](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
 
 -	### IDml
 	An interface used to specify a DML implementation within the `SObjectUnitOfWork`.
@@ -35,7 +40,8 @@ This is a WIP.
 
 -	### SObjectFactory
 	Allows easy creation of SObjects, auto generating required fields and relationships when needed.
-  You can extend this class to make your own custom factories, or use the built-in "Generic" factory.
+
+    You can extend this class to make your own custom factories, or use the built-in "Generic" factory.
 
 - ### SObjectMatcher
   Match SObjects using fields of your choice.
@@ -136,6 +142,7 @@ SObject result = matcher.getRecord();
 ```apex
 SObjectSelector selector = new SObjectSelector.Generic(Account.SObjectType);
 
+// select all records with all fields
 List<SObject> results = selector.selectAll();
 ```
 
@@ -153,3 +160,32 @@ for (Integer i = 0; i < 100; i++) {
 
 uow.commitWork();
 ```
+
+`SObjectUtil`
+
+```apex
+Contact cont = [SELECT Id, Account.Name FROM Contact LIMIT 1];
+String sObjectName = SObjectUtil.convertIdToName(cont.Id);
+
+Schema.SObjectType type = SObjectUtil.convertNameToType('Contact');
+
+Object value = SObjectUtil.getFieldValue(cont, 'Account.Name');
+
+// ...and many more
+```
+
+Current test results are as follows:
+| Class | Percent | Lines |
+| ----- | ------- | ----- |
+| AddressUtil | 68% | 92/135 |
+| DuplicateFinder | 93% | 67/72 |
+| FieldSetUtil | 62% | 22/35 |
+| IconUtil | 92% | 77/83 |
+| LREngine | 92% | 204/221 |
+| PicklistUtil | 80%  | 40/50 |
+| RecordTypeUtil  | 88%  | 46/52 |
+| SObjectFactory | 74% | 140/188 |
+| SObjectMatcher | 85% | 97/113 |
+| SObjectSelector | 84% | 83/98 |
+| SObjectUnitOfWork | 78% | 149/189 |
+| SObjectUtil | 71% | 189/264 |
