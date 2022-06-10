@@ -1,19 +1,21 @@
 # apex-sobject-utils
 Utilities to make working with [SObjects](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/langCon_apex_SObjects.htm) and [DML](https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_dml_section.htm) easier in [Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_dev_guide.htm).
 
-This is a WIP.
-
 <a href="https://githubsfdeploy.herokuapp.com/app/githubdeploy/MJ12358/apex-sobject-utils?ref=main">
   <img alt="Deploy to Salesforce"
        src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
 
-## Requirements
+# Requirements
 
 - This package requires my [apex-core-utils](https://github.com/MJ12358/apex-core-utils).
-	The `StringBuilder` and `DateUtil`.
+	
+  The `StringBuilder` and `DateUtil`.
 
-## This package's highlights include the following:
+# Highlights
+
+- ### AddressUtil
+  Easily work with the compound address field.
 
 -	### CrudException
 	Generates a templated error message when a [CRUD](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
@@ -23,6 +25,9 @@ This is a WIP.
 
 -	###	DuplicateFinder
 	Used to easily find duplicates within the org based on the org's defined duplicate rules.
+
+- ### FieldSetUtil
+  Easily work with field sets.
 
 -	###	FlsException
 	Generates a templated error message when a [FLS](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
@@ -37,6 +42,12 @@ This is a WIP.
     [Adapted from this amazing code](https://github.com/abhinavguptas/Salesforce-Lookup-Rollup-Summaries/blob/master/classes/LREngine.cls).
 
     Simplifies rolling up child records in a lookup relationship.
+
+- ### PicklistUtil
+  Easily work with picklists.
+
+- ### RecordTypeUtil
+  Easily work with record types.
 
 -	### SObjectFactory
 	Allows easy creation of SObjects, auto generating required fields and relationships when needed.
@@ -63,7 +74,29 @@ This is a WIP.
 - ### SObjectUtil
   A utility class that has **many** helper methods to make working with SObjects and their fields easier.
 
+- ### RecordData
+  An Aura component to make accessing record data easier.
+
 # Usage
+
+`AddressUtil`
+
+```apex
+Lead lead1 = new Lead();
+lead1.Street = '123 Main St.';
+lead1.City = 'City';
+lead1.State = 'NY';
+lead1.Country = 'US';
+
+Lead lead2 = new Lead();
+
+AddressUtil.copy(lead1, lead2);
+
+System.assertEquals(lead2, lead1.Street);
+System.assertEquals(lead2, lead1.City);
+System.assertEquals(lead2, lead1.State);
+System.assertEquals(lead2, lead1.Country);
+```
 
 `CrudException`
 
@@ -81,6 +114,14 @@ acc.Name = 'Duplicate';
 DuplicateFinder finder = new DuplicateFinder();
 finder.find(acc);
 List<SObject> duplicates = finder.getRecords();
+```
+
+`FieldSetUtil`
+
+```apex
+List<String> fields = FieldSetUtil.getFields('Account', 'My_Field_Set');
+
+List<Schema.DescribeFieldResult> describes = FieldSetUtil.getDescribed('Account', 'My_Field_Set');
 ```
 
 `FlsException`
@@ -108,6 +149,23 @@ ctx.add(new LREngine.RollupSummaryField(
 ));
 
 List<SObject> masters = LREngine.rollUp(ctx, records);
+```
+
+`PicklistUtil`
+
+```apex
+List<String> labels = PicklistUtil.getLabels('Account', 'Type');
+List<String> values = PicklistUtil.getValues('Account', 'Type');
+
+// get state/country codes if its enabled in your org
+List<String> stateCodes = PicklistUtil.getStateValues();
+```
+
+`RecordTypeUtil`
+
+```apex
+Id result = RecordTypeUtil.getId('Account', 'My_Record_Type');
+String name = RecordTypeUtil.getName('Account', 'therecordtypeid');
 ```
 
 `SObjectFactory`
@@ -174,7 +232,27 @@ Object value = SObjectUtil.getFieldValue(cont, 'Account.Name');
 // ...and many more
 ```
 
-Current test results are as follows:
+`RecordData`
+
+// YourComponent.cmp
+```html
+<aura:handler
+  name="recordLoaded"
+  event="c:RecordDataLoaded"
+  action="{!c.recordLoaded}" />
+
+<c:RecordData aura:id="recordData"
+  isLoading="{!v.isLoading}"
+  layoutType="FULL"
+  mode="EDIT"
+  recordId="{#v.recordId}"
+  targetFields="{!v.record}" />
+```
+
+# Tests
+
+Current test results:
+
 | Class | Percent | Lines |
 | ----- | ------- | ----- |
 | AddressUtil | 68% | 92/135 |
@@ -188,4 +266,5 @@ Current test results are as follows:
 | SObjectMatcher | 85% | 97/113 |
 | SObjectSelector | 84% | 83/98 |
 | SObjectUnitOfWork | 78% | 149/189 |
-| SObjectUtil | 71% | 189/264 |
+| SObjectUtil | 86% | 210/243 |
+| UserUtil | 100% | 20/20 |
