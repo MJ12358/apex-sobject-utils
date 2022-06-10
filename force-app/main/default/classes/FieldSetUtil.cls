@@ -60,7 +60,6 @@ public inherited sharing class FieldSetUtil {
  *  @param String The field set name
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getFields(String sObjectName, String fieldSetName) {
     Schema.SObjectType sObjectType = SObjectUtil.convertNameToType(sObjectName);
     return getFields(sObjectType, fieldSetName);
@@ -121,7 +120,6 @@ public inherited sharing class FieldSetUtil {
  *  @param String The field set name
  *  @return String
  */
-  @AuraEnabled
   public static String getDescribedForAura(String sObjectName, String fieldSetName) {
     return System.JSON.serialize(getDescribed(sObjectName, fieldSetName));
   }

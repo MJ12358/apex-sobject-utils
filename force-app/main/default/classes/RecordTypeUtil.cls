@@ -50,7 +50,6 @@ public inherited sharing class RecordTypeUtil {
  *  @param String sObjectName
  *  @return Map<Id, String>
  */
-  @AuraEnabled
   public static Map<Id, String> get(String sObjectName) {
     return get(SObjectUtil.convertNameToType(sObjectName));
   }
@@ -103,7 +102,6 @@ public inherited sharing class RecordTypeUtil {
  *  @param String The record type name
  *  @return Id The record type ID
  */
-  @AuraEnabled
   public static Id getId(String sObjectName, String recTypeName) {
     Schema.SObjectType sObjectType = SObjectUtil.convertNameToType(sObjectName);
     return getId(sObjectType, recTypeName);
@@ -151,7 +149,6 @@ public inherited sharing class RecordTypeUtil {
  *  @param Id The record type id
  *  @return String The record type label
  */
-  @AuraEnabled
   public static String getLabel(String sObjectName, Id recTypeId) {
     Schema.SObjectType sObjectType = SObjectUtil.convertNameToType(sObjectName);
     return getLabel(sObjectType, recTypeId);
@@ -199,7 +196,6 @@ public inherited sharing class RecordTypeUtil {
  *  @param Id The record type id
  *  @return String The record type name
  */
-  @AuraEnabled
   public static String getName(String sObjectName, Id recTypeId) {
     Schema.SObjectType sObjectType = SObjectUtil.convertNameToType(sObjectName);
     return getName(sObjectType, recTypeId);

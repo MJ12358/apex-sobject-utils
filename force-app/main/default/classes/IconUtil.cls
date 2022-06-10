@@ -32,7 +32,6 @@ public inherited sharing class IconUtil {
  *  @param String The sObject name
  *  @return String The icon name formatted for slds
  */
-  @AuraEnabled
   public static String getLightningIcon(String sObjectName) {
     if (String.isBlank(sObjectName)) {
       return 'standard:default';

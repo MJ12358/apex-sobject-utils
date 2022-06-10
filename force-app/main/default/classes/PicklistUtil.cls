@@ -53,7 +53,6 @@ public inherited sharing class PicklistUtil {
  *  @param String The sObject field name
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getLabels(String sObjectName, String fieldName) {
     return getLabels(SObjectUtil.getAllFields(sObjectName).get(fieldName));
   }
@@ -73,7 +72,6 @@ public inherited sharing class PicklistUtil {
  *  @param String The sObject field name
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getValues(String sObjectName, String fieldName) {
     return getValues(SObjectUtil.getAllFields(sObjectName).get(fieldName));
   }
@@ -102,7 +100,6 @@ public inherited sharing class PicklistUtil {
  *  Get country picklist labels
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getCountryLabels() {
     Set<String> result = getCountryValueByLabel().keySet();
     return new List<String>(result);
@@ -112,7 +109,6 @@ public inherited sharing class PicklistUtil {
  *  Get country picklist values
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getCountryValues() {
     return getCountryValueByLabel().values();
   }
@@ -139,7 +135,6 @@ public inherited sharing class PicklistUtil {
  *  Get state picklist labels
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getStateLabels() {
     Set<String> result = getStateValueByLabel().keySet();
     return new List<String>(result);
@@ -149,7 +144,6 @@ public inherited sharing class PicklistUtil {
  *  Get state picklist values
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getStateValues() {
     return getStateValueByLabel().values();
   }
