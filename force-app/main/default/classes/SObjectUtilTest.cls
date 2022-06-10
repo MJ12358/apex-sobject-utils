@@ -15,6 +15,17 @@ public class SObjectUtilTest {
   }
 
   @IsTest
+  static void testGetFieldMap() {
+    Account acc = [SELECT Id FROM Account LIMIT 1];
+    Test.startTest();
+    Map<String, Schema.SObjectField> result1 = SObjectUtil.getFieldMap(acc);
+    Map<String, Schema.SObjectField> result2 = SObjectUtil.getFieldMap(Account.SObjectType.getDescribe());
+    Test.stopTest();
+    System.assert(!result1.isEmpty());
+    System.assert(!result2.isEmpty());
+  }
+
+  @IsTest
   static void testConvertIdToName() {
     List<Id> idList = new List<Id>();
     for (Account acc : [SELECT Id FROM Account]) {
@@ -23,9 +34,11 @@ public class SObjectUtilTest {
     Test.startTest();
     String result1 = SObjectUtil.convertIdToName(idList[0]);
     String result2 = SObjectUtil.convertIdToName(idList);
+    String result3 = SObjectUtil.convertIdToName(new Set<Id>(idList));
     Test.stopTest();
     System.assertEquals('Account', result1);
     System.assertEquals('Account', result2);
+    System.assertEquals('Account', result3);
   }
 
   @IsTest
@@ -37,9 +50,11 @@ public class SObjectUtilTest {
     Test.startTest();
     Schema.SObjectType result1 = SObjectUtil.convertIdToType(idList[0]);
     Schema.SObjectType result2 = SObjectUtil.convertIdToType(idList);
+    Schema.SObjectType result3 = SObjectUtil.convertIdToType(new Set<Id>(idList));
     Test.stopTest();
     System.assertEquals(Account.SObjectType, result1);
     System.assertEquals(Account.SObjectType, result2);
+    System.assertEquals(Account.SObjectType, result3);
   }
 
   @IsTest
@@ -96,14 +111,6 @@ public class SObjectUtilTest {
     Test.stopTest();
     System.assertEquals('testing', description);
     System.assert(String.isNotBlank(createdName));
-  }
-
-  @IsTest
-  static void testGetAllFields() {
-    Test.startTest();
-    Map<String, Schema.SObjectField> fields = SObjectUtil.getAllFields('Account');
-    Test.stopTest();
-    System.assert(fields.keySet().size() > 0);
   }
 
   @IsTest
@@ -197,10 +204,15 @@ public class SObjectUtilTest {
 
   @IsTest
   static void testGetAccessibleFields() {
+    Account acc = [SELECT Id FROM Account LIMIT 1];
     Test.startTest();
-    List<String> results = SObjectUtil.getAccessibleFields('Account');
+    List<String> results1 = SObjectUtil.getAccessibleFields('Account');
+    List<String> results2 = SObjectUtil.getAccessibleFields(acc.Id);
+    List<String> results3 = SObjectUtil.getAccessibleFields('Account', 'String');
     Test.stopTest();
-    System.assert(results.size() > 0);
+    System.assert(!results1.isEmpty());
+    System.assert(!results2.isEmpty());
+    System.assert(!results3.isEmpty());
   }
 
   @IsTest
@@ -208,7 +220,18 @@ public class SObjectUtilTest {
     Test.startTest();
     List<String> results = SObjectUtil.getAccessibleFields('Account', Schema.DisplayType.PICKLIST);
     Test.stopTest();
-    System.assert(results.size() > 0);
+    System.assert(!results.isEmpty());
+  }
+
+  @IsTest
+  static void testGetUpdateableFields() {
+    Account acc = [SELECT Id FROM Account LIMIT 1];
+    Test.startTest();
+    List<String> results1 = SObjectUtil.getUpdateableFields('Account');
+    List<String> results2 = SObjectUtil.getUpdateableFields(acc.Id);
+    Test.stopTest();
+    System.assert(!results1.isEmpty());
+    System.assert(!results2.isEmpty());
   }
 
   @IsTest
@@ -228,9 +251,9 @@ public class SObjectUtilTest {
   }
 
   @IsTest
-  static void testGetMostRecentlyViewedRecord() {
+  static void testGetRecentlyViewedRecord() {
     Test.startTest();
-    SObject result = SObjectUtil.getMostRecentlyViewedRecord(Account.SObjectType);
+    SObject result = SObjectUtil.getRecentlyViewedRecord(Account.SObjectType);
     Test.stopTest();
     System.assertNotEquals(null, result);
   }

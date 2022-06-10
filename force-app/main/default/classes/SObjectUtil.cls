@@ -120,7 +120,6 @@ public inherited sharing class SObjectUtil {
  *  @param Id The sObject ID to convert
  *  @return String
  */
-  @AuraEnabled
   public static String convertIdToName(Id recordId) {
     if (String.isNotBlank(recordId)) {
       return recordId.getSObjectType().getDescribe().getName();
@@ -133,7 +132,6 @@ public inherited sharing class SObjectUtil {
  *  @param List<Id> The sObject ID to convert
  *  @return String
  */
-  @AuraEnabled
   public static String convertIdToName(List<Id> recordIds) {
     if (recordIds != null && !recordIds.isEmpty()) {
       return convertIdToName(recordIds[0]);
@@ -198,7 +196,6 @@ public inherited sharing class SObjectUtil {
  *  @param String The sObject name to convert
  *  @return String
  */
-  @AuraEnabled
   public static String convertNameToLabel(String sObjectName) {
     if (String.isNotBlank(sObjectName)) {
       return convertNameToType(sObjectName)?.getDescribe().getLabel(); 
@@ -301,30 +298,6 @@ public inherited sharing class SObjectUtil {
     return sObj.get(field);
   }
 
-  //* Get all fields
-
-/**
- *  Get all fields from an sObject
- *  @param Schema.SObjectType
- *  @return Map<String, Schema.SObjectField>
- */
-  public static Map<String, Schema.SObjectField> getAllFields(Schema.SObjectType sObjectType) {
-    Map<String, Schema.SObjectField> result = new Map<String, Schema.SObjectField>();
-    if (sObjectType != null) {
-      result = getFieldMap(sObjectType);
-    }
-    return result;
-  }
-
-/**
- *  Get all fields from an sObject
- *  @param String
- *  @return Map<String, Schema.SObjectField>
- */
-  public static Map<String, Schema.SObjectField> getAllFields(String sObjectName) {
-    return getAllFields(convertNameToType(sObjectName));
-  }
-
   //* Generic select statement
 
 /**
@@ -332,13 +305,8 @@ public inherited sharing class SObjectUtil {
  *  @param Id The sObject record ID
  *  @return SObject
  */
-  @AuraEnabled
   public static SObject selectById(Id recordId) {
-    try {
-      return new SObjectSelector.Generic(recordId.getSObjectType()).selectById(recordId);
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
+    return new SObjectSelector.Generic(recordId.getSObjectType()).selectById(recordId);
   }
 
   //* Generic delete statement
@@ -347,20 +315,15 @@ public inherited sharing class SObjectUtil {
  *  Generic delete sObject by ID
  *  @param Id The sObject record ID
  */
-  @AuraEnabled
   public static void deleteById(Id recordId) {
-    try {
-      SObject record = new SObjectSelector.Generic(recordId.getSObjectType()).selectById(recordId);
-      SObjectUnitOfWork uow = new SObjectUnitOfWork(
-        new List<Schema.SObjectType>{
-          recordId.getSObjectType()
-        }
-      );
-      uow.registerDeleted(record);
-      uow.commitWork();
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
+    SObject record = new SObjectSelector.Generic(recordId.getSObjectType()).selectById(recordId);
+    SObjectUnitOfWork uow = new SObjectUnitOfWork(
+      new List<Schema.SObjectType>{
+        recordId.getSObjectType()
+      }
+    );
+    uow.registerDeleted(record);
+    uow.commitWork();
   }
 
   //* Generic update statement
@@ -369,40 +332,30 @@ public inherited sharing class SObjectUtil {
  *  Generic update records
  *  @param String A serialized list of sObjects
  */
-  @AuraEnabled
   public static void updateRecords(String records) {
-    try {
-      List<SObject> values = (List<SObject>)System.JSON.deserialize(records, List<SObject>.class);
-      SObjectUnitOfWork uow = new SObjectUnitOfWork(
-        new List<Schema.SObjectType>{
-          values[0].getSObjectType()
-        }
-      );
-      uow.registerDirty(values);
-      uow.commitWork();
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
+    List<SObject> values = (List<SObject>)System.JSON.deserialize(records, List<SObject>.class);
+    SObjectUnitOfWork uow = new SObjectUnitOfWork(
+      new List<Schema.SObjectType>{
+        values[0].getSObjectType()
+      }
+    );
+    uow.registerDirty(values);
+    uow.commitWork();
   }
 
 /**
  *  Generic update record
  *  @param String A serialized sObject
  */
-  @AuraEnabled
   public static void updateRecord(String record) {
-    try {
-      SObject value = (SObject)System.JSON.deserialize(record, SObject.class);
-      SObjectUnitOfWork uow = new SObjectUnitOfWork(
-        new List<Schema.SObjectType>{
-          value.getSObjectType()
-        }
-      );
-      uow.registerDirty(value);
-      uow.commitWork();
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
+    SObject value = (SObject)System.JSON.deserialize(record, SObject.class);
+    SObjectUnitOfWork uow = new SObjectUnitOfWork(
+      new List<Schema.SObjectType>{
+        value.getSObjectType()
+      }
+    );
+    uow.registerDirty(value);
+    uow.commitWork();
   }
 
   //* Most recently viewed record
@@ -412,19 +365,14 @@ public inherited sharing class SObjectUtil {
  *  @param String
  *  @return SObject
  */
-  @AuraEnabled
-  public static SObject getMostRecentlyViewedRecord(String sObjectName) {
-    try {
-      return [
-        SELECT Id
-        FROM RecentlyViewed
-        WHERE Type = :sObjectName
-        ORDER BY LastViewedDate DESC
-        LIMIT 1
-      ];
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
+  public static SObject getRecentlyViewedRecord(String sObjectName) {
+    return [
+      SELECT Id
+      FROM RecentlyViewed
+      WHERE Type = :sObjectName
+      ORDER BY LastViewedDate DESC
+      LIMIT 1
+    ];
   }
 
 /**
@@ -432,8 +380,9 @@ public inherited sharing class SObjectUtil {
  *  @param Schema.SObjectType
  *  @return SObject
  */
-  public static SObject getMostRecentlyViewedRecord(Schema.SObjectType sObjectType) {
-    return getMostRecentlyViewedRecord(sObjectType.getDescribe().getName());
+  public static SObject getRecentlyViewedRecord(Schema.SObjectType sObjectType) {
+    String sObjectName = sObjectType.getDescribe().getName();
+    return getRecentlyViewedRecord(sObjectName);
   }
 
   //* Get reference to
@@ -462,7 +411,7 @@ public inherited sharing class SObjectUtil {
  *  @return Set<Schema.SObjectType>
  */
   public static Set<Schema.SObjectType> getReferenceTo(String sObjectName, String fieldName) {
-    return getReferenceTo(getAllFields(sObjectName).get(fieldName));
+    return getReferenceTo(getFieldMap(sObjectName).get(fieldName));
   }
 
   //* Get accessible fields
@@ -499,7 +448,6 @@ public inherited sharing class SObjectUtil {
  *  @param String The sObject name
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getAccessibleFields(String sObjectName) {
     return getAccessibleFields(convertNameToType(sObjectName));
   }
@@ -507,7 +455,7 @@ public inherited sharing class SObjectUtil {
   //* Get accessible fields by type
 
 /**
- *  Get fields by type
+ *  Get accessible fields by type
  *  @param Schema.SObjectType The sObject type
  *  @param Schema.DisplayType The field type
  *  @return List<String>
@@ -526,7 +474,7 @@ public inherited sharing class SObjectUtil {
   }
 
 /**
- *  Get field by type
+ *  Get accessible fields by type
  *  @param String The sObject name
  *  @param Schema.DisplayType The field type
  *  @return List<String>
@@ -536,12 +484,11 @@ public inherited sharing class SObjectUtil {
   }
 
 /**
- *  Get field by type
+ *  Get accessible fields by type
  *  @param String The sObject name
  *  @param String The field type
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getAccessibleFields(String sObjectName, String fieldType) {
     Schema.DisplayType displayType;
     if (String.isNotBlank(fieldType)) {
@@ -565,7 +512,7 @@ public inherited sharing class SObjectUtil {
   public static List<String> getUpdateableFields(Schema.SObjectType sObjectType) {
     List<String> result = new List<String>();
     if (sObjectType != null) {
-      for (Schema.SObjectField field : getAllFields(sObjectType).values()) {
+      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
         Schema.DescribeFieldResult fieldDesc = field.getDescribe();
         if (fieldDesc.isAccessible() && fieldDesc.isUpdateable()) {
           result.add(fieldDesc.getName());
@@ -580,7 +527,6 @@ public inherited sharing class SObjectUtil {
  *  @param Id The sObject id
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getUpdateableFields(Id recordId) {
     return getUpdateableFields(convertIdToType(recordId));
   }
@@ -590,7 +536,6 @@ public inherited sharing class SObjectUtil {
  *  @param String The sObject name
  *  @return List<String>
  */
-  @AuraEnabled
   public static List<String> getUpdateableFields(String sObjectName) {
     return getUpdateableFields(convertNameToType(sObjectName));
   }
@@ -622,7 +567,6 @@ public inherited sharing class SObjectUtil {
  *  @param String
  *  @return String
  */
-  @AuraEnabled
   public static String getRelationshipName(String sObjectName, String fieldName) {
     return getRelationshipName(globalDescribe.get(sObjectName), fieldName);
   }
@@ -650,7 +594,6 @@ public inherited sharing class SObjectUtil {
  *  @param String
  *  @return String
  */
-  @AuraEnabled
   public static String getChildRelationshipName(String sObjectName, String fieldName) {
     Schema.SObjectType sObjectType = globalDescribe.get(sObjectName);
     if (sObjectType == null) {
@@ -691,7 +634,6 @@ public inherited sharing class SObjectUtil {
  *  @param String The sObject name
  *  @return Boolean
  */
-  @AuraEnabled
   public static Boolean isValid(String sObjectName) {
     Schema.SObjectType sObjectType;
     if (String.isNotBlank(sObjectName)) {
@@ -700,7 +642,6 @@ public inherited sharing class SObjectUtil {
     return sObjectType == null ? false : true;
   }
 
-  @AuraEnabled
   public static Boolean isNotValid(String sObjectName) {
     return !isValid(sObjectName);
   }
@@ -711,7 +652,6 @@ public inherited sharing class SObjectUtil {
  *  @param String The field name
  *  @return Boolean
  */
-  @AuraEnabled
   public static Boolean isValid(String sObjectName, String fieldName) {
     return isValid(convertNameToType(sObjectName), fieldName);
   }
@@ -748,7 +688,6 @@ public inherited sharing class SObjectUtil {
     return getFieldMap(parentType).containsKey(split[index]);
   }
 
-  @AuraEnabled
   public static Boolean isNotValid(String sObjectName, String fieldName) {
     return !isValid(sObjectName, fieldName);
   }
@@ -781,7 +720,6 @@ public inherited sharing class SObjectUtil {
  *  @param String The sObject name
  *  @return Id
  */
-  @AuraEnabled
   public static Id getFakeId(String sObjectName) {
     return getFakeId(convertNameToType(sObjectName));
   }
