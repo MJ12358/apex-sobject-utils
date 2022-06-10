@@ -1,0 +1,50 @@
+<aura:component>
+
+  <aura:registerEvent name="recordChanged" type="c:RecordDataChanged" />
+  <aura:registerEvent name="recordError" type="c:RecordDataError" />
+  <aura:registerEvent name="recordLoaded" type="c:RecordDataLoaded" />
+  <aura:registerEvent name="recordRemoved" type="c:RecordDataRemoved" />
+
+  <aura:attribute name="fields" type="List" default="[]" />
+  <aura:attribute name="isLoading" type="Boolean" />
+  <aura:attribute name="layoutType" type="String" default="COMPACT" />
+  <aura:attribute name="mode" type="String" default="VIEW" />
+  <aura:attribute name="recordId" type="String" />
+  <aura:attribute name="targetError" type="String" />
+  <aura:attribute name="targetFields" type="Map" />
+  <aura:attribute name="targetRecord" type="Map" />
+
+  <aura:method name="deleteRecord" action="{!c.deleteRecord}">
+    <aura:attribute name="successCallback" type="Function" />
+    <aura:attribute name="errorCallback" type="Function" />
+  </aura:method>
+
+  <aura:method name="getNewRecord" action="{!c.getNewRecord}">
+    <aura:attribute name="objectApiName" type="String" />
+    <aura:attribute name="recordTypeId" type="String" />
+    <aura:attribute name="skipCache" type="Boolean" default="true" />
+    <aura:attribute name="successCallback" type="Function" />
+    <aura:attribute name="errorCallback" type="Function" />
+  </aura:method>
+
+  <aura:method name="reloadRecord" action="{!c.reloadRecord}">
+    <aura:attribute name="skipCache" type="Boolean" default="true" />
+    <aura:attribute name="callback" type="Function" />
+  </aura:method>
+
+  <aura:method name="saveRecord" action="{!c.saveRecord}">
+    <aura:attribute name="successCallback" type="Function" />
+    <aura:attribute name="errorCallback" type="Function" />
+  </aura:method>
+
+  <force:recordData aura:id="recordData"
+    fields="{!v.fields}"
+    layoutType="{#v.layoutType}"
+    mode="{#v.mode}"
+    recordId="{#v.recordId}"
+    recordUpdated="{!c.recordUpdated}"
+    targetError="{!v.targetError}"
+    targetFields="{!v.targetFields}"
+    targetRecord="{!v.targetRecord}" />
+
+</aura:component> 
