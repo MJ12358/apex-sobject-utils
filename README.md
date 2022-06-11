@@ -266,5 +266,5 @@ Current test results:
 | SObjectMatcher | 85% | 97/113 |
 | SObjectSelector | 84% | 83/98 |
 | SObjectUnitOfWork | 78% | 149/189 |
-| SObjectUtil | 86% | 210/243 |
+| SObjectUtil | 92% | 244/263 |
 | UserUtil | 100% | 20/20 |
