@@ -229,9 +229,19 @@ public class SObjectUtilTest {
     Test.startTest();
     List<String> results1 = SObjectUtil.getUpdateableFields('Account');
     List<String> results2 = SObjectUtil.getUpdateableFields(acc.Id);
+    List<String> results3 = SObjectUtil.getUpdateableFields('Account', 'String');
     Test.stopTest();
     System.assert(!results1.isEmpty());
     System.assert(!results2.isEmpty());
+    System.assert(!results3.isEmpty());
+  }
+
+  @IsTest
+  static void testGetUpdateableFieldsByType() {
+    Test.startTest();
+    List<String> results = SObjectUtil.getUpdateableFields('Account', Schema.DisplayType.PICKLIST);
+    Test.stopTest();
+    System.assert(!results.isEmpty());
   }
 
   @IsTest
@@ -259,21 +269,46 @@ public class SObjectUtilTest {
   }
 
   @IsTest
+  static void testSetAssignmentRule() {
+    Lead l = new Lead();
+    Test.startTest();
+    SObject result = SObjectUtil.setAssignmentRule(l);
+    Test.stopTest();
+    System.assertNotEquals(null, result);
+  }
+
+  @IsTest
   static void testIsValid() {
     Test.startTest();
     System.assertEquals(true, SObjectUtil.isValid('Account'));
-    System.assertEquals(true, SObjectUtil.isValid('Account', 'Name'));
+    System.assertEquals(true, SObjectUtil.isValid('WorkOrder'));
     System.assertEquals(false, SObjectUtil.isValid('Testing'));
+    // opposite
+    System.assertEquals(false, SObjectUtil.isNotValid('Account'));
+    System.assertEquals(false, SObjectUtil.isNotValid('WorkOrder'));
+    System.assertEquals(true, SObjectUtil.isNotValid('Testing'));
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void testIsValidField() {
+    Test.startTest();
+    System.assertEquals(true, SObjectUtil.isValid('Account', 'Name'));
     System.assertEquals(false, SObjectUtil.isValid('Account', 'Testing'));
     System.assertEquals(true, SObjectUtil.isValid('WorkOrder', 'Account.Name'));
     System.assertEquals(false, SObjectUtil.isValid('WorkOrder', 'Account.Testing'));
     // opposite
-    System.assertEquals(false, SObjectUtil.isNotValid('Account'));
     System.assertEquals(false, SObjectUtil.isNotValid('Account', 'Name'));
-    System.assertEquals(true, SObjectUtil.isNotValid('Testing'));
     System.assertEquals(true, SObjectUtil.isNotValid('Account', 'Testing'));
     System.assertEquals(false, SObjectUtil.isNotValid('WorkOrder', 'Account.Name'));
-    System.assertEquals(true, SObjectUtil.isNotValid('WorkOrder', 'Account.Testing'));
+    System.assertEquals(true, SObjectUtil.isNotValid(WorkOrder.SObjectType, 'Account.Testing'));
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void testPersonAccountsEnabled() {
+    Test.startTest();
+    Boolean result = SObjectUtil.isPersonAccountsEnabled();
     Test.stopTest();
   }
 

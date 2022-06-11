@@ -121,10 +121,10 @@ public inherited sharing class SObjectUtil {
  *  @return String
  */
   public static String convertIdToName(Id recordId) {
-    if (String.isNotBlank(recordId)) {
-      return recordId.getSObjectType().getDescribe().getName();
+    if (String.isBlank(recordId)) {
+      return null;
     }
-    return null;
+    return recordId.getSObjectType().getDescribe().getName();
   }
 
 /**
@@ -133,10 +133,10 @@ public inherited sharing class SObjectUtil {
  *  @return String
  */
   public static String convertIdToName(List<Id> recordIds) {
-    if (recordIds != null && !recordIds.isEmpty()) {
-      return convertIdToName(recordIds[0]);
+    if (recordIds == null || recordIds.isEmpty()) {
+      return null;
     }
-    return null;
+    return convertIdToName(recordIds[0]);
   }
 
 /**
@@ -145,10 +145,10 @@ public inherited sharing class SObjectUtil {
  *  @return String
  */
   public static String convertIdToName(Set<Id> recordIds) {
-    if (recordIds != null && !recordIds.isEmpty()) {
-      return convertIdToName(new List<Id>(recordIds));
+    if (recordIds == null || recordIds.isEmpty()) {
+      return null;
     }
-    return null;
+    return convertIdToName(new List<Id>(recordIds));
   }
 
   //* Convert Id to type
@@ -159,10 +159,10 @@ public inherited sharing class SObjectUtil {
  *  @return Schema.SObjectType
  */
   public static Schema.SObjectType convertIdToType(Id recordId) {
-    if (String.isNotBlank(recordId)) {
-      return recordId.getSObjectType();
+    if (String.isBlank(recordId)) {
+      return null;
     }
-    return null;
+    return recordId.getSObjectType();
   }
 
 /**
@@ -171,10 +171,10 @@ public inherited sharing class SObjectUtil {
  *  @return Schema.SObjectType
  */
   public static Schema.SObjectType convertIdToType(List<Id> recordIds) {
-    if (recordIds != null && !recordIds.isEmpty()) {
-      return convertIdToType(recordIds[0]);
+    if (recordIds == null || recordIds.isEmpty()) {
+      return null;
     }
-    return null;
+    return convertIdToType(recordIds[0]);
   }
 
 /**
@@ -183,10 +183,10 @@ public inherited sharing class SObjectUtil {
  *  @return Schema.SObjectType
  */
   public static Schema.SObjectType convertIdToType(Set<Id> recordIds) {
-    if (recordIds != null && !recordIds.isEmpty()) {
-      return convertIdToType(new List<Id>(recordIds));
+    if (recordIds == null || recordIds.isEmpty()) {
+      return null;
     }
-    return null;
+    return convertIdToType(new List<Id>(recordIds));
   }
 
   //* Convert name to label
@@ -197,10 +197,10 @@ public inherited sharing class SObjectUtil {
  *  @return String
  */
   public static String convertNameToLabel(String sObjectName) {
-    if (String.isNotBlank(sObjectName)) {
-      return convertNameToType(sObjectName)?.getDescribe().getLabel(); 
+    if (String.isBlank(sObjectName)) {
+      return null;
     }
-    return null;
+    return convertNameToType(sObjectName)?.getDescribe().getLabel(); 
   }
 
   //* Convert name to type
@@ -211,15 +211,15 @@ public inherited sharing class SObjectUtil {
  *  @return Schema.SObjectType
  */
   public static Schema.SObjectType convertNameToType(String sObjectName) {
-    if (String.isNotBlank(sObjectName)) {
-      System.Type t = System.Type.forName(sObjectName);
-      if (t == null) {
-        return null;
-      }
-      SObject sObj = (SObject)t.newInstance();
-      return sObj.getSObjectType();
+    if (String.isBlank(sObjectName)) {
+      return null;
     }
-    return null;
+    System.Type t = System.Type.forName(sObjectName);
+    if (t == null) {
+      return null;
+    }
+    SObject sObj = (SObject)t.newInstance();
+    return sObj.getSObjectType();
   }
 
   //* Convert field to type
@@ -231,10 +231,10 @@ public inherited sharing class SObjectUtil {
  *  @return Schema.SObjectField
  */
   public static Schema.SObjectField convertFieldToType(String sObjectName, String sObjectField) {
-    if (String.isNotBlank(sObjectName) && String.isNotBlank(sObjectField)) {
-      return getFieldMap(globalDescribe.get(sObjectName)).get(sObjectField);
+    if (String.isBlank(sObjectName) || String.isBlank(sObjectField)) {
+      return null;
     }
-    return null;
+    return getFieldMap(globalDescribe.get(sObjectName)).get(sObjectField);
   }
 
 /**
@@ -244,10 +244,7 @@ public inherited sharing class SObjectUtil {
  *  @return Schema.SObjectField
  */
   public static Schema.SObjectField convertFieldToType(Schema.SObjectType sObjectType, String sObjectField) {
-    if (sObjectType != null) {
-      return convertFieldToType(sObjectType.getDescribe().getName(), sObjectField);
-    }
-    return null;
+    return convertFieldToType(sObjectType?.getDescribe().getName(), sObjectField);
   }
 
   //* Get sObject type from field
@@ -298,6 +295,183 @@ public inherited sharing class SObjectUtil {
     return sObj.get(field);
   }
 
+  //* Get display type
+
+  public static Schema.DisplayType getDisplayType(String fieldType) {
+    Schema.DisplayType displayType;
+    if (String.isNotBlank(fieldType)) {
+      for (Schema.DisplayType type : Schema.DisplayType.values()) {
+        if (type.name().toUpperCase() == fieldType.toUpperCase()) {
+          displayType = type;
+          break;
+        }
+      }
+    }
+    return displayType;
+  }
+
+  //* Get accessible fields
+
+/**
+ *  Get accessible fields
+ *  @param Schema.SObjectType The sObject type
+ *  @return List<String>
+ */
+  public static List<String> getAccessibleFields(Schema.SObjectType sObjectType) {
+    List<String> result = new List<String>();
+    if (sObjectType != null) {
+      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
+        Schema.DescribeFieldResult describe = field.getDescribe();
+        if (describe.isAccessible()) {
+          result.add(describe.getName());
+        }
+      }
+    }
+    return result;
+  }
+
+/**
+ *  Get accessible fields
+ *  @param Id The sObject id
+ *  @return List<String>
+ */
+  public static List<String> getAccessibleFields(Id recordId) {
+    return getAccessibleFields(convertIdToType(recordId));
+  }
+
+/**
+ *  Get accessible fields
+ *  @param String The sObject name
+ *  @return List<String>
+ */
+  public static List<String> getAccessibleFields(String sObjectName) {
+    return getAccessibleFields(convertNameToType(sObjectName));
+  }
+
+  //* Get accessible fields by type
+
+/**
+ *  Get accessible fields by type
+ *  @param Schema.SObjectType The sObject type
+ *  @param Schema.DisplayType The field type
+ *  @return List<String>
+ */
+  public static List<String> getAccessibleFields(Schema.SObjectType sObjectType, Schema.DisplayType displayType) {
+    List<String> result = new List<String>();
+    if (sObjectType != null && displayType != null) {
+      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
+        Schema.DescribeFieldResult describe = field.getDescribe();
+        if (describe.isAccessible() && describe.getType() == displayType) {
+          result.add(describe.getName());
+        }
+      }
+    }
+    return result;
+  }
+
+/**
+ *  Get accessible fields by type
+ *  @param String The sObject name
+ *  @param Schema.DisplayType The field type
+ *  @return List<String>
+ */
+  public static List<String> getAccessibleFields(String sObjectName, Schema.DisplayType displayType) {
+    return getAccessibleFields(convertNameToType(sObjectName), displayType);
+  }
+
+/**
+ *  Get accessible fields by type
+ *  @param String The sObject name
+ *  @param String The field type
+ *  @return List<String>
+ */
+  public static List<String> getAccessibleFields(String sObjectName, String fieldType) {
+    Schema.DisplayType displayType = getDisplayType(fieldType);
+    Schema.SObjectType sObjectType = convertNameToType(sObjectName);
+    return getAccessibleFields(sObjectType, displayType);
+  }
+
+  //* Get updateable fields
+
+/**
+ *  Get updatable fields
+ *  @param Schema.SObjectType The sObject type
+ *  @return List<String>
+ */
+  public static List<String> getUpdateableFields(Schema.SObjectType sObjectType) {
+    List<String> result = new List<String>();
+    if (sObjectType != null) {
+      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
+        Schema.DescribeFieldResult fieldDesc = field.getDescribe();
+        if (fieldDesc.isAccessible() && fieldDesc.isUpdateable()) {
+          result.add(fieldDesc.getName());
+        }
+      }
+    }
+    return result;
+  }
+
+/**
+ *  Get updatable fields
+ *  @param Id The sObject id
+ *  @return List<String>
+ */
+  public static List<String> getUpdateableFields(Id recordId) {
+    return getUpdateableFields(convertIdToType(recordId));
+  }
+
+/**
+ *  Get updatable fields
+ *  @param String The sObject name
+ *  @return List<String>
+ */
+  public static List<String> getUpdateableFields(String sObjectName) {
+    return getUpdateableFields(convertNameToType(sObjectName));
+  }
+
+  //* Get updateable fields by type
+
+/**
+ *  Get updateable fields by type
+ *  @param Schema.SObjectType The sObject type
+ *  @param Schema.DisplayType The field type
+ *  @return List<String>
+ */
+  public static List<String> getUpdateableFields(Schema.SObjectType sObjectType, Schema.DisplayType displayType) {
+    List<String> result = new List<String>();
+    if (sObjectType != null && displayType != null) {
+      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
+        Schema.DescribeFieldResult describe = field.getDescribe();
+        if (describe.isAccessible() && describe.isUpdateable() && describe.getType() == displayType) {
+          result.add(describe.getName());
+        }
+      }
+    }
+    return result;
+  }
+
+/**
+ *  Get updateable fields by type
+ *  @param String The sObject name
+ *  @param Schema.DisplayType The field type
+ *  @return List<String>
+ */
+  public static List<String> getUpdateableFields(String sObjectName, Schema.DisplayType displayType) {
+    return getUpdateableFields(convertNameToType(sObjectName), displayType);
+  }
+
+/**
+ *  Get updateable fields by type
+ *  @param String The sObject name
+ *  @param String The field type
+ *  @return List<String>
+ */
+  public static List<String> getUpdateableFields(String sObjectName, String fieldType) {
+    Schema.DisplayType displayType = getDisplayType(fieldType);
+    Schema.SObjectType sObjectType = convertNameToType(sObjectName);
+    return getUpdateableFields(sObjectType, displayType);
+  }
+
   //* Generic select statement
 
 /**
@@ -306,7 +480,8 @@ public inherited sharing class SObjectUtil {
  *  @return SObject
  */
   public static SObject selectById(Id recordId) {
-    return new SObjectSelector.Generic(recordId.getSObjectType()).selectById(recordId);
+    Schema.SObjectType sObjectType = recordId.getSObjectType();
+    return new SObjectSelector.Generic(sObjectType).selectById(recordId);
   }
 
   //* Generic delete statement
@@ -316,7 +491,8 @@ public inherited sharing class SObjectUtil {
  *  @param Id The sObject record ID
  */
   public static void deleteById(Id recordId) {
-    SObject record = new SObjectSelector.Generic(recordId.getSObjectType()).selectById(recordId);
+    Schema.SObjectType sObjectType = recordId.getSObjectType();
+    SObject record = new SObjectSelector.Generic(sObjectType).selectById(recordId);
     SObjectUnitOfWork uow = new SObjectUnitOfWork(
       new List<Schema.SObjectType>{
         recordId.getSObjectType()
@@ -411,136 +587,11 @@ public inherited sharing class SObjectUtil {
  *  @return Set<Schema.SObjectType>
  */
   public static Set<Schema.SObjectType> getReferenceTo(String sObjectName, String fieldName) {
-    return getReferenceTo(getFieldMap(sObjectName).get(fieldName));
+    Schema.SObjectField field = getFieldMap(sObjectName).get(fieldName);
+    return getReferenceTo(field);
   }
 
-  //* Get accessible fields
-
-/**
- *  Get accessible fields
- *  @param Schema.SObjectType The sObject type
- *  @return List<String>
- */
-  public static List<String> getAccessibleFields(Schema.SObjectType sObjectType) {
-    List<String> result = new List<String>();
-    if (sObjectType != null) {
-      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
-        Schema.DescribeFieldResult describe = field.getDescribe();
-        if (describe.isAccessible()) {
-          result.add(describe.getName());
-        }
-      }
-    }
-    return result;
-  }
-
-/**
- *  Get accessible fields
- *  @param Id The sObject id
- *  @return List<String>
- */
-  public static List<String> getAccessibleFields(Id recordId) {
-    return getAccessibleFields(convertIdToType(recordId));
-  }
-
-/**
- *  Get accessible fields
- *  @param String The sObject name
- *  @return List<String>
- */
-  public static List<String> getAccessibleFields(String sObjectName) {
-    return getAccessibleFields(convertNameToType(sObjectName));
-  }
-
-  //* Get accessible fields by type
-
-/**
- *  Get accessible fields by type
- *  @param Schema.SObjectType The sObject type
- *  @param Schema.DisplayType The field type
- *  @return List<String>
- */
-  public static List<String> getAccessibleFields(Schema.SObjectType sObjectType, Schema.DisplayType displayType) {
-    List<String> result = new List<String>();
-    if (sObjectType != null && displayType != null) {
-      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
-        Schema.DescribeFieldResult describe = field.getDescribe();
-        if (describe.isAccessible() && describe.getType() == displayType) {
-          result.add(describe.getName());
-        }
-      }
-    }
-    return result;
-  }
-
-/**
- *  Get accessible fields by type
- *  @param String The sObject name
- *  @param Schema.DisplayType The field type
- *  @return List<String>
- */
-  public static List<String> getAccessibleFields(String sObjectName, Schema.DisplayType displayType) {
-    return getAccessibleFields(convertNameToType(sObjectName), displayType);
-  }
-
-/**
- *  Get accessible fields by type
- *  @param String The sObject name
- *  @param String The field type
- *  @return List<String>
- */
-  public static List<String> getAccessibleFields(String sObjectName, String fieldType) {
-    Schema.DisplayType displayType;
-    if (String.isNotBlank(fieldType)) {
-      for (Schema.DisplayType type : Schema.DisplayType.values()) {
-        if (type.name().toUpperCase() == fieldType.toUpperCase()) {
-          displayType = type;
-          break;
-        }
-      }
-    }
-    return getAccessibleFields(convertNameToType(sObjectName), displayType);
-  }
-
-  //* Get updateable fields
-
-/**
- *  Get updatable fields
- *  @param Schema.SObjectType The sObject type
- *  @return List<String>
- */
-  public static List<String> getUpdateableFields(Schema.SObjectType sObjectType) {
-    List<String> result = new List<String>();
-    if (sObjectType != null) {
-      for (Schema.SObjectField field : getFieldMap(sObjectType).values()) {
-        Schema.DescribeFieldResult fieldDesc = field.getDescribe();
-        if (fieldDesc.isAccessible() && fieldDesc.isUpdateable()) {
-          result.add(fieldDesc.getName());
-        }
-      }
-    }
-    return result;
-  }
-
-/**
- *  Get updatable fields
- *  @param Id The sObject id
- *  @return List<String>
- */
-  public static List<String> getUpdateableFields(Id recordId) {
-    return getUpdateableFields(convertIdToType(recordId));
-  }
-
-/**
- *  Get updatable fields
- *  @param String The sObject name
- *  @return List<String>
- */
-  public static List<String> getUpdateableFields(String sObjectName) {
-    return getUpdateableFields(convertNameToType(sObjectName));
-  }
-
-  //* Get relationship names
+  //* Get relationship name
 
 /**
  *  Get relationship name from SObjectField
@@ -558,7 +609,8 @@ public inherited sharing class SObjectUtil {
  *  @return String
  */
   public static String getRelationshipName(Schema.SObjectType sObjectType, String fieldName) {
-    return getRelationshipName(getFieldMap(sObjectType).get(fieldName));
+    Schema.SObjectField field = getFieldMap(sObjectType).get(fieldName);
+    return getRelationshipName(field);
   }
 
 /**
@@ -627,7 +679,7 @@ public inherited sharing class SObjectUtil {
     return sObj;
   }
 
-  //* Validation
+  //* Validate sObject
 
 /**
  *  Verify the passed in string is a valid sObject
@@ -645,6 +697,8 @@ public inherited sharing class SObjectUtil {
   public static Boolean isNotValid(String sObjectName) {
     return !isValid(sObjectName);
   }
+
+  //* Validate sObject field
 
 /**
  *  Verify the passed in string is a valid field for an sObject (supports dot notation)
@@ -696,6 +750,8 @@ public inherited sharing class SObjectUtil {
     return !isValid(sObjectType, fieldName);
   }
 
+  //* Person accounts
+
 /**
  *  Check if person accounts are enabled
  *  @return Boolean
@@ -703,6 +759,8 @@ public inherited sharing class SObjectUtil {
   public static Boolean isPersonAccountsEnabled() {
     return getFieldMap(Account.SObjectType).containsKey('isPersonAccount');
   }
+
+  //* Fake Id
 
 /**
  *  Generate a fake sObject Id
