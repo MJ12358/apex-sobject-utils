@@ -1,7 +1,7 @@
 /**
  * Created on Sat Jun 04 2022
  *
- * Copyright (c) 2022 Matt Jants
+ * Copyright (c) 2022 MJ12358
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, 

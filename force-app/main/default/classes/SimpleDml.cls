@@ -1,7 +1,7 @@
 /**
  * Created on Thu Mar 04 2021
  *
- * Copyright (c) 2021 Matt Jants
+ * Copyright (c) 2021 MJ12358
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, 
