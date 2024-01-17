@@ -1,4 +1,5 @@
 # apex-sobject-utils
+
 Utilities to make working with [SObjects](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/langCon_apex_SObjects.htm) and [DML](https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_dml_section.htm) easier in [Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_dev_guide.htm).
 
 <a href="https://githubsfdeploy.herokuapp.com/app/githubdeploy/MJ12358/apex-sobject-utils?ref=main">
@@ -6,78 +7,95 @@ Utilities to make working with [SObjects](https://developer.salesforce.com/docs/
        src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
 
-# Requirements
+## Requirements
 
 - This package requires my [apex-core-utils](https://github.com/MJ12358/apex-core-utils).
-	
+
   The `StringBuilder` and `DateUtil`.
 
-# Highlights
+## Highlights
 
 - ### AddressUtil
+
   Easily work with the compound address field.
 
--	### CrudException
-	Generates a templated error message when a [CRUD](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
+- ### CrudException
+
+  Generates a templated error message when a [CRUD](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
 
 - ### DatabaseException
-	An abstract class which is extended by both `CrudException` and `FlsException`, just to make catching easier.
 
--	###	DuplicateFinder
-	Used to easily find duplicates within the org based on the org's defined duplicate rules.
+  An abstract class which is extended by both `CrudException` and `FlsException`, just to make catching easier.
+
+- ### DuplicateFinder
+
+  Used to easily find duplicates within the org based on the org's defined duplicate rules.
 
 - ### FieldSetUtil
+
   Easily work with field sets.
 
--	###	FlsException
-	Generates a templated error message when a [FLS](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
+- ### FlsException
 
--	### IDml
-	An interface used to specify a DML implementation within the `SObjectUnitOfWork`.
-	- OptionDml
-	- SecureDml
-	- SimpleDml
+  Generates a templated error message when a [FLS](https://developer.salesforce.com/wiki/enforcing_crud_and_fls) exception occurs.
+
+- ### IDml
+
+  An interface used to specify a DML implementation within the `SObjectUnitOfWork`.
+
+- OptionDml
+- SecureDml
+- SimpleDml
 
 - ### LREngine (Lookup Rollup Engine)
-    [Adapted from this amazing code](https://github.com/abhinavguptas/Salesforce-Lookup-Rollup-Summaries/blob/master/classes/LREngine.cls).
 
-    Simplifies rolling up child records in a lookup relationship.
+  [Adapted from this amazing code](https://github.com/abhinavguptas/Salesforce-Lookup-Rollup-Summaries/blob/master/classes/LREngine.cls).
+
+  Simplifies rolling up child records in a lookup relationship.
 
 - ### PicklistUtil
+
   Easily work with picklists.
 
 - ### RecordTypeUtil
+
   Easily work with record types.
 
--	### SObjectFactory
-	Allows easy creation of SObjects, auto generating required fields and relationships when needed.
+- ### SObjectFactory
 
-    You can extend this class to make your own custom factories, or use the built-in "Generic" factory.
+  Allows easy creation of SObjects, auto generating required fields and relationships when needed.
+
+  You can extend this class to make your own custom factories, or use the built-in "Generic" factory.
 
 - ### SObjectMatcher
+
   Match SObjects using fields of your choice.
 
--	###	SObjectSelector
-    [Adapted from this amazing code](https://github.com/financialforcedev/df12-apex-enterprise-patterns/blob/master/df12/src/classes/SObjectSelector.cls).
+- ### SObjectSelector
 
-	  Used to query the database via SOQL.
+  [Adapted from this amazing code](https://github.com/financialforcedev/df12-apex-enterprise-patterns/blob/master/df12/src/classes/SObjectSelector.cls).
 
-    You can extend this class to make your own custom selectors, or use the built-in "Generic" selector.
-    
+  Used to query the database via SOQL.
+
+  You can extend this class to make your own custom selectors, or use the built-in "Generic" selector.
+
     **TODO: Would like to create a "QueryBuilder" instead**
 
--	### SObjectUnitOfWork
-    [Adapted from this amazing code](https://github.com/financialforcedev/df12-apex-enterprise-patterns/blob/master/df12/src/classes/SObjectUnitOfWork.cls).
+- ### SObjectUnitOfWork
 
-	  Used to gather all dml work and commits it in a single place.
+  [Adapted from this amazing code](https://github.com/financialforcedev/df12-apex-enterprise-patterns/blob/master/df12/src/classes/SObjectUnitOfWork.cls).
+
+   Used to gather all dml work and commits it in a single place.
 
 - ### SObjectUtil
+
   A utility class that has **many** helper methods to make working with SObjects and their fields easier.
 
 - ### RecordData
+
   An Aura component to make accessing record data easier.
 
-# Usage
+## Usage
 
 `AddressUtil`
 
@@ -234,8 +252,8 @@ Object value = SObjectUtil.getFieldValue(cont, 'Account.Name');
 
 `RecordData`
 
-// YourComponent.cmp
 ```html
+<!-- YourComponent.cmp -->
 <aura:handler
   name="recordLoaded"
   event="c:RecordDataLoaded"
@@ -249,7 +267,7 @@ Object value = SObjectUtil.getFieldValue(cont, 'Account.Name');
   targetFields="{!v.record}" />
 ```
 
-# Tests
+## Tests
 
 Current test results:
 
